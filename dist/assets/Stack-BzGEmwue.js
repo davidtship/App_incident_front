@@ -1,0 +1,1 @@
+import{s,q as t}from"./Box-DPWK2j67.js";import{a as r}from"./useSlot-BtFL6hs8.js";const m=r({createStyledComponent:s("div",{name:"MuiStack",slot:"Root",overridesResolver:(e,o)=>o.root}),useThemeProps:e=>t({props:e,name:"MuiStack"})});export{m as S};

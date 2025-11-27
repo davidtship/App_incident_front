@@ -1,0 +1,1 @@
+import{j as t}from"./index-B6sDybhi.js";import{s as m,T as a}from"./Box-DPWK2j67.js";const i=m(o=>t.jsx(a,{variant:"subtitle1",fontWeight:600,...o,component:"label",htmlFor:o.htmlFor}))(()=>({marginBottom:"5px",marginTop:"25px",display:"block"}));export{i as C};
