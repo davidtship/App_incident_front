@@ -92,8 +92,7 @@ const Login = () => {
                 textRendering: "optimizeLegibility",
               }}
             >
-              Une plateforme intelligente dédiée à la collecte, l’analyse et la gestion
-              fiable des données scolaires pour les établissements modernes.
+              Découvrez une plateforme intelligente qui simplifie la collecte et le suivi des incidents et accidents dans les établissements scolaires. Analysez les données en temps réel, améliorez la sécurité et optimisez la gestion de votre établissement en toute fiabilité.
             </Typography>
 
             {/* IMAGE + TEXTES */}
@@ -183,3 +182,4 @@ const Login = () => {
 };
 
 export default Login;
+
