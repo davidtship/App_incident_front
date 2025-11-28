@@ -51,11 +51,11 @@ const AuthRegister = ({ title, subtitle, subtext }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
+      
       const data = await response.json();
 
       if (!response.ok) {
-        return alert(data.detail || JSON.stringify(data));
+        return alert("cc");
       }
 
       alert('Compte créé avec succès !');
