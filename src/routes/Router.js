@@ -45,8 +45,8 @@ const Router = [
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: <Navigate to="/dashboards/modern" /> },
-      { path: '/dashboards/modern', exact: true, element: <ModernDash /> },
+      { path: '/', element: <Navigate to="/dashboards" /> },
+      { path: '/dashboards', exact: true, element: <ModernDash /> },
       { path: '/apps/ecommerce/shop', element: <Ecommerce /> },
       { path: '/apps/Incident/list', element: <IncidentList /> },
       { path: '/apps/Incident/add', element: <IncidentAdd /> },

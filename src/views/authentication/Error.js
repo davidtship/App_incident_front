@@ -16,16 +16,16 @@ const Error = () => (
         Opps!!!
       </Typography>
       <Typography align="center" variant="h4" mb={4}>
-        This page you are looking for could not be found.
+        La page que vous recherchez est introuvable.
       </Typography>
       <Button
         color="primary"
         variant="contained"
         component={Link}
-        to="/dashboards/modern"
+        to="/dashboards"
         disableElevation
       >
-        Go Back to Home
+        Revenir a l'acceuil
       </Button>
     </Container>
   </Box>

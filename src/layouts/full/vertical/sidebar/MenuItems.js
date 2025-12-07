@@ -1,61 +1,20 @@
 import { uniqueId } from 'lodash';
 
 import {
-  IconAward,
-  IconBoxMultiple,
   IconPoint,
-  IconAlertCircle,
-  IconNotes,
   IconCalendar,
-  IconMail,
   IconTicket,
-  IconEdit,
-  IconCurrencyDollar,
-  IconApps,
-  IconFileDescription,
-  IconFileDots,
-  IconFiles,
-  IconBan,
-  IconStar,
-  IconMoodSmile,
-  IconBorderAll,
-  IconBorderHorizontal,
-  IconBorderInner,
-  IconBorderVertical,
-  IconBorderTop,
+  IconList,
   IconUserCircle,
-  IconPackage,
-  IconMessage2,
-  IconBasket,
-  IconChartLine,
-  IconChartArcs,
-  IconChartCandle,
-  IconChartArea,
-  IconChartDots,
-  IconChartDonut3,
-  IconChartRadar,
-  IconLogin,
-  IconUserPlus,
-  IconRotate,
-  IconBox,
-  IconShoppingCart,
-  IconAperture,
-  IconLayout,
-  IconSettings,
-  IconHelp,
-  IconZoomCode,
-  IconBoxAlignBottom,
-  IconBoxAlignLeft,
-  IconBorderStyle2,
-  IconAppWindow,
-  IconNotebook,
-  IconFileCheck,
-  IconChartHistogram,
-  IconChartPie2,
-  IconChartScatter,
-  IconChartPpf,
-  IconChartArcs3,
-  IconListTree,
+  IconLayoutDashboard,
+  IconSchool,
+  IconChartBar,
+  IconAccessible,
+  IconCirclePlus,
+  IconCategory,
+  IconBrandGoogleMaps,
+  IconEdit,
+  IconSettings2
 } from '@tabler/icons-react';
 
 const Menuitems = [
@@ -66,22 +25,16 @@ const Menuitems = [
 
   {
     id: uniqueId(),
-    title: 'Dashboard',
-    icon: IconAperture,
-    href: '/dashboards/modern',
+    title: 'Tableau de bord',
+    icon: IconLayoutDashboard,
+    href: '/dashboards',
 
     chipColor: 'secondary',
   },
- 
-  
-
-
-
- 
   {
     id: uniqueId(),
     title: 'Incidents',
-    icon: IconBasket,
+    icon: IconAccessible,
     href: '/apps/ecommerce/',
     children: [
       
@@ -89,14 +42,14 @@ const Menuitems = [
       {
         id: uniqueId(),
         title: 'Liste',
-        icon: IconPoint,
+        icon: IconList,
         href: '/apps/Incident/list',
       },
       
       {
         id: uniqueId(),
         title: 'Ajouter',
-        icon: IconPoint,
+        icon: IconCirclePlus,
         href: '/apps/Incident/add',
       },
     ],
@@ -104,8 +57,8 @@ const Menuitems = [
    
   {
     id: uniqueId(),
-    title: 'Schools',
-    icon: IconBasket,
+    title: 'Ecoles',
+    icon: IconSchool,
     href: '/apps/ecommerce/',
     children: [
       
@@ -113,51 +66,38 @@ const Menuitems = [
       {
         id: uniqueId(),
         title: 'Liste',
-        icon: IconPoint,
+        icon: IconList,
         href: '/apps/ecommerce/eco-product-list',
       },
       
       {
         id: uniqueId(),
         title: 'Ajouter',
-        icon: IconPoint,
+        icon: IconCirclePlus,
         href: '/apps/ecommerce/add-product',
       },
       {
         id: uniqueId(),
         title: 'Categorie',
-        icon: IconPoint,
+        icon: IconCategory,
         href: '/apps/ecommerce/edit-product',
       },
       {
         id: uniqueId(),
         title: 'Region',
-        icon: IconPoint,
+        icon: IconBrandGoogleMaps,
         href: '/apps/ecommerce/edit-product',
       },
       {
         id: uniqueId(),
         title: 'Modifier',
-        icon: IconPoint,
+        icon: IconEdit,
         href: '/apps/ecommerce/edit-product',
       },
     ],
   },
   
-  {
-    id: uniqueId(),
-    title: 'Users',
-    icon: IconUserCircle,
-    href: '/user-profile',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Liste',
-        icon: IconPoint,
-        href: '/user-profile',
-      }
-    ],
-  },
+ 
  
   {
     id: uniqueId(),
@@ -167,18 +107,32 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: 'Rapport',
-    icon: IconTicket,
+    title: 'Rapports',
+    icon: IconChartBar,
     href: '/apps/tickets',
   },
-
-
-  {
+ {
+    id: uniqueId(),
+    title: 'Utilisateurs',
+    icon: IconUserCircle,
+    href: '/user-profile',
+    children: [
+      {
+        id: uniqueId(),
+        title: 'Liste',
+        icon: IconList,
+        href: '/user-profile',
+      },
+      {
     id: uniqueId(),
     title: 'Parametres utilisateurs',
-    icon: IconUserCircle,
+    icon: IconSettings2,
     href: '/pages/account-settings',
   },
+    ],
+  },
+
+  
 
 ];
 

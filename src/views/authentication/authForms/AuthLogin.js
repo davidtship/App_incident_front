@@ -9,8 +9,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
 import { useNavigate } from 'react-router';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 import CustomTextField from '../../../components/forms/theme-elements/CustomTextField';
 import CustomFormLabel from '../../../components/forms/theme-elements/CustomFormLabel';
@@ -19,19 +22,26 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleMouseDownPassword = (event) => event.preventDefault();
 
   const handleLogin = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('https://safeschooldata-6d63cd50a8a3.herokuapp.com/auth/jwt/create/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        'https://safeschooldata-6d63cd50a8a3.herokuapp.com/auth/jwt/create/',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
@@ -42,19 +52,20 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
         return;
       }
 
-      // Stockage des infos dans localStorage
       localStorage.setItem('access', data.access);
       localStorage.setItem('refresh', data.refresh);
-      localStorage.setItem('user', JSON.stringify({
-        id: data.id,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-      }));
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          id: data.id,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+        })
+      );
 
       setLoading(false);
-      navigate('/dashboards/modern'); // redirige vers le dashboard
-
+      navigate('/dashboards');
     } catch (err) {
       setError('Erreur serveur. Veuillez réessayer.');
       setOpenDialog(true);
@@ -104,11 +115,24 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
           <CustomFormLabel htmlFor="password">Mot de passe</CustomFormLabel>
           <CustomTextField
             id="password"
-            type="password"
             variant="outlined"
             fullWidth
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
         </Box>
 

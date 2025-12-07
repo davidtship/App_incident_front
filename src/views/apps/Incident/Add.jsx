@@ -54,20 +54,30 @@ const Add = () => {
   ));
 
   // Charger écoles
-  useEffect(() => {
-    fetch('https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/schools/')
-      .then(res => res.json())
-      .then(data => setSchools(data.map(s => ({ label: s.name, value: s.id }))))
-      .catch(err => console.error(err));
-  }, []);
+useEffect(() => {
+  fetch('https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/schools/')
+    .then(res => res.json())
+    .then(data => {
+      // Si API paginée
+      const list = data.results ? data.results : data;
+      setSchools(list.map(s => ({ label: s.name, value: s.id })));
+    })
+    .catch(err => console.error(err));
+}, []);
 
-  // Charger catégories
-  useEffect(() => {
-    fetch("https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/incident-categories/")
-      .then(res => res.json())
-      .then(data => setCategories(data.map((cat, idx) => ({ label: `${idx+1}. ${cat.name}`, value: cat.id }))))
-      .catch(err => console.error(err));
-  }, []);
+// Charger catégories
+useEffect(() => {
+  fetch("https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/incident-categories/")
+    .then(res => res.json())
+    .then(data => {
+      const list = data.results ? data.results : data;
+      setCategories(list.map((cat, idx) => ({
+        label: `${idx + 1}. ${cat.name}`,
+        value: cat.id
+      })));
+    })
+    .catch(err => console.error(err));
+}, []);
 
   // Actions dynamiques
   const addAction = () => setActions([...actions, { id: Date.now(), value: '' }]);
@@ -106,7 +116,11 @@ const handleSubmit = async (e) => {
   // ⚡ Narration — transformer en string HTML si nécessaire
   // Si TiptapEdit renvoie déjà une string HTML, garde comme ça
   // Sinon, utilise `narration.getHTML()` ou `JSON.stringify(narration)`
-  formData.append('narration', typeof narration === 'string' ? narration : JSON.stringify(narration));
+const plainText = narration.replace(/<[^>]+>/g, '');
+formData.append('narration', plainText);
+  console.log("Narration:", plainText);
+console.log("Type:", typeof plainText);
+alert(plainText)
 
   // Actions dynamiques
   formData.append('actionTaken', JSON.stringify(actions.map(a => a.value)));
@@ -115,7 +129,8 @@ const handleSubmit = async (e) => {
   formData.append('state', "true");
 
   // Fichiers médias
-  mediaFiles.forEach(file => formData.append('picture', file));
+  mediaFiles.forEach(file => formData.append('uploaded_files', file));
+
 
   // 🔹 Debug : vérifier ce qui est envoyé
   console.log("=== FormData ===");
@@ -268,9 +283,9 @@ const handleSubmit = async (e) => {
                   <CustomTextField name="place" fullWidth />
                   <CustomFormLabel mt={3}>Type</CustomFormLabel>
                   <CustomSelect value={incidentType} onChange={e => setIncidentType(e.target.value)} fullWidth>
-                    <MenuItem value="F">Faible</MenuItem>
-                    <MenuItem value="M">Moyen</MenuItem>
-                    <MenuItem value="G">Grave</MenuItem>
+                    <MenuItem value="Faible">Faible</MenuItem>
+                    <MenuItem value="Moyen">Moyen</MenuItem>
+                    <MenuItem value="Grave">Grave</MenuItem>
                   </CustomSelect>
 
                   <CustomFormLabel mt={3}>Date de l'incident *</CustomFormLabel>

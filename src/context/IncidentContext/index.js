@@ -4,20 +4,28 @@ export const IncidentContext = createContext({});
 
 export const IncidentProvider = ({ children }) => {
   const [incidents, setIncidents] = useState([]);
+  const [totalCount, setTotalCount] = useState(0); // total depuis l'API paginée
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const response = await fetch('https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/incidents/');
+        const response = await fetch(
+          'https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/incidents/'
+        );
         if (!response.ok) throw new Error('Erreur lors du fetch des incidents');
 
         const data = await response.json();
-        setIncidents(data);
+
+        // 👉 IMPORTANT : stocker seulement les résultats paginés
+        setIncidents(data.results || []);
+        setTotalCount(data.count || 0);
+
       } catch (error) {
         console.error("Erreur fetch incidents:", error.message);
         setIncidents([]);
+        setTotalCount(0);
       } finally {
         setLoading(false);
       }
@@ -28,17 +36,17 @@ export const IncidentProvider = ({ children }) => {
 
   const handleSearch = (text) => setSearch(text);
 
-  // Filtrage par nom d'étudiant ou narration
-  const filteredIncidents = incidents.filter(
-    (incident) =>
-      incident.student?.toLowerCase().includes(search.toLowerCase()) ||
-      incident.narration?.toLowerCase().includes(search.toLowerCase())
+  // Filtrage des résultats
+  const filteredIncidents = incidents.filter((incident) =>
+    incident.student?.toLowerCase().includes(search.toLowerCase()) ||
+    incident.narration?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <IncidentContext.Provider
       value={{
         incidents: filteredIncidents,
+        totalCount,
         loading,
         search,
         handleSearch,

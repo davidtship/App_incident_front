@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Divider } from '@mui/material';
-import { Link, useNavigate } from 'react-router';
+import {
+  Box,
+  Typography,
+  Button,
+  Divider,
+  IconButton,
+  InputAdornment,
+} from '@mui/material';
+import { useNavigate } from 'react-router';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Stack } from '@mui/system';
 
 import CustomTextField from '../../../components/forms/theme-elements/CustomTextField';
 import CustomFormLabel from '../../../components/forms/theme-elements/CustomFormLabel';
-import { Stack } from '@mui/system';
 import AuthSocialButtons from './AuthSocialButtons';
 
 const AuthRegister = ({ title, subtitle, subtext }) => {
@@ -16,47 +24,43 @@ const AuthRegister = ({ title, subtitle, subtext }) => {
     passwordConfirm: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const validatePassword = (password) => {
-    const regex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-    return regex.test(password);
-  };
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+  const toggleShowPasswordConfirm = () => setShowPasswordConfirm((prev) => !prev);
+
+  const validatePassword = (password) => /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const { first_name, last_name, email, password, passwordConfirm } = formData;
 
-    // Vérifier que les mots de passe correspondent
-    if (password !== passwordConfirm) {
-      return alert('Les mots de passe ne correspondent pas.');
-    }
+    if (password !== passwordConfirm) return alert('Les mots de passe ne correspondent pas.');
+    if (!validatePassword(password)) return alert('Le mot de passe doit contenir au moins 8 caractères, une lettre et un chiffre.');
 
-    // Vérifier la force du mot de passe
-    if (!validatePassword(password)) {
-      return alert('Le mot de passe doit contenir au moins 8 caractères, une lettre et un chiffre.');
-    }
-
-    // Préparer les données à envoyer
     const payload = { first_name, last_name, email, password };
 
     try {
-      const response = await fetch('https://safeschooldata-6d63cd50a8a3.herokuapp.com/auths/users/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      
+      const response = await fetch(
+        'https://safeschooldata-6d63cd50a8a3.herokuapp.com/auths/users/',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+
       const data = await response.json();
 
-      if (!response.ok) {
-        return alert("cc");
-      }
+      if (!response.ok) return alert(JSON.stringify(data));
 
       alert('Compte créé avec succès !');
       navigate('/auth/login');
@@ -75,7 +79,6 @@ const AuthRegister = ({ title, subtitle, subtext }) => {
       )}
 
       {subtext}
-      <AuthSocialButtons title="Sign up with" />
 
       <Box mt={3}>
         <Divider>
@@ -87,27 +90,77 @@ const AuthRegister = ({ title, subtitle, subtext }) => {
             position="relative"
             px={2}
           >
-            or sign up with
+            Inscription
           </Typography>
         </Divider>
       </Box>
 
       <Box component="form" onSubmit={handleSubmit}>
-        <Stack mb={3}>
+        <Stack mb={3} spacing={2}>
           <CustomFormLabel htmlFor="first_name">Nom</CustomFormLabel>
-          <CustomTextField id="first_name" variant="outlined" fullWidth value={formData.first_name} onChange={handleChange} />
+          <CustomTextField
+            id="first_name"
+            variant="outlined"
+            fullWidth
+            value={formData.first_name}
+            onChange={handleChange}
+          />
 
           <CustomFormLabel htmlFor="last_name">Postnom</CustomFormLabel>
-          <CustomTextField id="last_name" variant="outlined" fullWidth value={formData.last_name} onChange={handleChange} />
+          <CustomTextField
+            id="last_name"
+            variant="outlined"
+            fullWidth
+            value={formData.last_name}
+            onChange={handleChange}
+          />
 
           <CustomFormLabel htmlFor="email">Adresse email</CustomFormLabel>
-          <CustomTextField id="email" variant="outlined" fullWidth value={formData.email} onChange={handleChange} />
+          <CustomTextField
+            id="email"
+            variant="outlined"
+            fullWidth
+            value={formData.email}
+            onChange={handleChange}
+          />
 
           <CustomFormLabel htmlFor="password">Mot de passe</CustomFormLabel>
-          <CustomTextField id="password" type="password" variant="outlined" fullWidth value={formData.password} onChange={handleChange} />
+          <CustomTextField
+            id="password"
+            variant="outlined"
+            fullWidth
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={toggleShowPassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
 
           <CustomFormLabel htmlFor="passwordConfirm">Mot de passe de nouveau</CustomFormLabel>
-          <CustomTextField id="passwordConfirm" type="password" variant="outlined" fullWidth value={formData.passwordConfirm} onChange={handleChange} />
+          <CustomTextField
+            id="passwordConfirm"
+            variant="outlined"
+            fullWidth
+            type={showPasswordConfirm ? 'text' : 'password'}
+            value={formData.passwordConfirm}
+            onChange={handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={toggleShowPasswordConfirm} edge="end">
+                    {showPasswordConfirm ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
         </Stack>
 
         <Button

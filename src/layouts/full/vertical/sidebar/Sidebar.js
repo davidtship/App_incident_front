@@ -4,8 +4,6 @@ import Logo from '../../shared/logo/Logo';
 import config from 'src/context/config';
 import { CustomizerContext } from 'src/context/CustomizerContext';
 import { useContext } from 'react';
-import Scrollbar from 'src/components/custom-scroll/Scrollbar';
-import { Profile } from './SidebarProfile/Profile';
 
 const Sidebar = () => {
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));

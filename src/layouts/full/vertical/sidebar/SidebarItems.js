@@ -15,50 +15,54 @@ const SidebarItems = () => {
   const { isSidebarHover, isCollapse, isMobileSidebar, setIsMobileSidebar } = useContext(CustomizerContext);
 
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
-  const hideMenu = lgUp ? isCollapse == "mini-sidebar" && !isSidebarHover : '';
+  const hideMenu = lgUp ? isCollapse === "mini-sidebar" && !isSidebarHover : false;
 
+  const renderMenu = (items, level = 0) => {
+    return items.map((item) => {
+      // Subheader
+      if (item.subheader) {
+        return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;
+      }
 
+      // Menu with children (collapsible)
+      if (item.children && item.children.length > 0) {
+        return (
+          <NavCollapse
+            key={item.id}
+            menu={item}
+            level={level + 1} // incrémentation pour indentation
+            pathDirect={pathDirect}
+            pathWithoutLastPart={pathWithoutLastPart}
+            hideMenu={hideMenu}
+            onClick={() => setIsMobileSidebar(false)}
+          >
+            {/* Récursion pour enfants */}
+            {renderMenu(item.children, level + 1)}
+          </NavCollapse>
+        );
+      }
+
+      // Simple menu item
+      return (
+        <NavItem
+          key={item.id}
+          item={item}
+          level={level} // pour indentation
+          pathDirect={pathDirect}
+          hideMenu={hideMenu}
+          onClick={() => setIsMobileSidebar(false)}
+        />
+      );
+    });
+  };
 
   return (
     <Box sx={{ px: 3 }}>
       <List sx={{ pt: 0 }} className="sidebarNav">
-        {Menuitems.map((item, index) => {
-          // {/********SubHeader**********/}
-          if (item.subheader) {
-            return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;
-
-            // {/********If Sub Menu**********/}
-            /* eslint no-else-return: "off" */
-          } else if (item.children) {
-            return (
-              <NavCollapse
-                menu={item}
-                pathDirect={pathDirect}
-                hideMenu={hideMenu}
-                pathWithoutLastPart={pathWithoutLastPart}
-                level={1}
-                key={item.id}
-                onClick={() => setIsMobileSidebar(!isMobileSidebar)}
-
-              />
-            );
-
-            // {/********If Sub No Menu**********/}
-          } else {
-            return (
-              <NavItem
-                item={item}
-                key={item.id}
-                pathDirect={pathDirect}
-                hideMenu={hideMenu}
-                onClick={() => setIsMobileSidebar(!isMobileSidebar)}
-
-              />
-            );
-          }
-        })}
+        {renderMenu(Menuitems)}
       </List>
     </Box>
   );
 };
+
 export default SidebarItems;

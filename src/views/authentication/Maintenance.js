@@ -19,7 +19,7 @@ const Maintenance = () => (
         Website is Under Construction. Check back later!
       </Typography>
       <Button color="primary" variant="contained" component={Link} to="/" disableElevation>
-        Go Back to Home
+         Revenir a l'acceuil
       </Button>
     </Container>
   </Box>

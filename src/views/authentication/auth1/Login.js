@@ -8,7 +8,6 @@ import Paper from '@mui/material/Paper';
 
 import PageContainer from 'src/components/container/PageContainer';
 import img1 from 'src/assets/images/backgrounds/back.png';
-import Logo from 'src/layouts/full/shared/logo/Logo';
 import AuthLogin from '../authForms/AuthLogin';
 
 const Login = () => {
