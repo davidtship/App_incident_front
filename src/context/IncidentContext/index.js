@@ -7,12 +7,13 @@ export const IncidentProvider = ({ children }) => {
   const [totalCount, setTotalCount] = useState(0); // total depuis l'API paginée
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const response = await fetch(
-          'https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/incidents/'
+        const response = await fetch(`
+          ${apiUrl}/api/incidents/`
         );
         if (!response.ok) throw new Error('Erreur lors du fetch des incidents');
 

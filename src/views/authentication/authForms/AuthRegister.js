@@ -28,7 +28,7 @@ const AuthRegister = ({ title, subtitle, subtext }) => {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const navigate = useNavigate();
-
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -50,7 +50,7 @@ const AuthRegister = ({ title, subtitle, subtext }) => {
 
     try {
       const response = await fetch(
-        'https://safeschooldata-6d63cd50a8a3.herokuapp.com/auths/users/',
+        `${apiUrl}/auths/users`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

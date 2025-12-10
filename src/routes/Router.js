@@ -13,9 +13,13 @@ const ModernDash = Loadable(lazy(() => import('../views/dashboard/Modern')));
 const Ecommerce = Loadable(lazy(() => import('../views/apps/Incident/Ecommerce')));
 const IncidentAdd = Loadable(lazy(() => import('../views/apps/Incident/Add')));
 const IncidentList = Loadable(lazy(() => import('../views/apps/Incident/List')));
-const EcomProductCheckout = Loadable(
-  lazy(() => import('../views/apps/Incident/EcommerceCheckout')),
-);
+
+const EcoleAdd = Loadable(lazy(() => import('../views/apps/Ecoles/Add')));
+const EcoleList = Loadable(lazy(() => import('../views/apps/Ecoles/List')));
+
+
+
+
 const UserProfile = Loadable(lazy(() => import('../views/apps/user-profile/UserProfile')));
 
 const Pricing = Loadable(lazy(() => import('../views/pages/pricing/Pricing')));
@@ -48,8 +52,15 @@ const Router = [
       { path: '/', element: <Navigate to="/dashboards" /> },
       { path: '/dashboards', exact: true, element: <ModernDash /> },
       { path: '/apps/ecommerce/shop', element: <Ecommerce /> },
+
+
+      { path: '/apps/Ecoles/list', element: <EcoleList /> },
+      { path: '/apps/Ecoles/add', element: <EcoleAdd /> },
+
       { path: '/apps/Incident/list', element: <IncidentList /> },
       { path: '/apps/Incident/add', element: <IncidentAdd /> },
+
+
       { path: '/user-profile', element: <UserProfile /> },
 
       { path: '/pages/pricing', element: <Pricing /> },

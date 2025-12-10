@@ -26,6 +26,7 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = (event) => event.preventDefault();
@@ -35,7 +36,7 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
     setError('');
     try {
       const response = await fetch(
-        'https://safeschooldata-6d63cd50a8a3.herokuapp.com/auth/jwt/create/',
+        `${apiUrl}/auth/jwt/create/`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

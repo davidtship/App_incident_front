@@ -59,7 +59,6 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Ecoles',
     icon: IconSchool,
-    href: '/apps/ecommerce/',
     children: [
       
      
@@ -67,14 +66,14 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Liste',
         icon: IconList,
-        href: '/apps/ecommerce/eco-product-list',
+        href: '/apps/Ecoles/list',
       },
       
       {
         id: uniqueId(),
         title: 'Ajouter',
         icon: IconCirclePlus,
-        href: '/apps/ecommerce/add-product',
+        href: '/apps/Ecoles/add',
       },
       {
         id: uniqueId(),

@@ -10,6 +10,7 @@ import icon5 from '../../../assets/images/svgs/icon-dd-message-box.svg';
 import icon6 from '../../../assets/images/svgs/icon-user-male.svg';
 
 const TopCards = () => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const [topData, setTopData] = useState({
     totalIncidents: 0,
     treatedIncidents: 0,
@@ -23,9 +24,9 @@ const TopCards = () => {
       try {
         // Lancer toutes les requêtes en parallèle
         const [incidentsRes, schoolsRes, usersRes] = await Promise.all([
-          fetch("https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/incidents/"),
-          fetch("https://safeschooldata-6d63cd50a8a3.herokuapp.com/api/schools/"),
-          fetch("https://safeschooldata-6d63cd50a8a3.herokuapp.com/auths/users/"),
+          fetch(`${apiUrl}/api/incidents/`),
+          fetch(`${apiUrl}/api/schools/`),
+          fetch(`${apiUrl}/auths/users/`),
         ]);
 
         const [incidentsData, schoolsData, usersData] = await Promise.all([
