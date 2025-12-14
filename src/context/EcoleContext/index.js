@@ -1,3 +1,4 @@
+import { Alert } from '@mui/material';
 import React, { createContext, useState, useEffect } from 'react';
 
 export const EcoleContext = createContext({});
@@ -49,7 +50,7 @@ export const EcoleProvider = ({ children }) => {
   const fetchCategories = async () => {
     try {
       const response = await fetch(
-        `${apiUrl}/'api/school-categories/`
+        `${apiUrl}/api/school-categories/`
       );
       if (!response.ok) throw new Error('Erreur fetch catégories');
       const data = await response.json();
@@ -72,11 +73,13 @@ export const EcoleProvider = ({ children }) => {
   // ---- Helpers ------------------------
   const getRegionName = (regionId) => {
     const region = regions.find((r) => r.id === regionId);
+
     return region ? region.name : "Non définie";
   };
 
   const getCategorieName = (catId) => {
     const cat = categories.find((c) => c.id === catId);
+   
     return cat ? cat.name : "Non définie";
   };
 

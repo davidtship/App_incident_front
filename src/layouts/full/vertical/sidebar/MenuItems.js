@@ -79,18 +79,12 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Categorie',
         icon: IconCategory,
-        href: '/apps/ecommerce/edit-product',
+        href: '/apps/Categorie-Ecoles/list',
       },
       {
         id: uniqueId(),
         title: 'Region',
         icon: IconBrandGoogleMaps,
-        href: '/apps/ecommerce/edit-product',
-      },
-      {
-        id: uniqueId(),
-        title: 'Modifier',
-        icon: IconEdit,
         href: '/apps/ecommerce/edit-product',
       },
     ],
@@ -102,7 +96,7 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Incidents par dates',
     icon: IconCalendar,
-    href: '/apps/calendar',
+    href: '/apps/Incident/par-date',
   },
   {
     id: uniqueId(),
@@ -114,13 +108,12 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Utilisateurs',
     icon: IconUserCircle,
-    href: '/user-profile',
     children: [
       {
         id: uniqueId(),
         title: 'Liste',
         icon: IconList,
-        href: '/user-profile',
+        href: '/apps/Users/list',
       },
       {
     id: uniqueId(),

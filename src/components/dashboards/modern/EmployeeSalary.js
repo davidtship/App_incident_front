@@ -1,96 +1,109 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { useTheme } from '@mui/material/styles';
-import { Box } from '@mui/system';
-
+import { Box, Typography } from '@mui/material';
 import DashboardWidgetCard from '../../shared/DashboardWidgetCard';
 
-const EmployeeSalary = () => {
-  // chart color
+const IncidentDonutByType = () => {
   const theme = useTheme();
-  const primary = theme.palette.primary.main;
-  const success = theme.palette.success.main;
-  const warning = theme.palette.warning.main;
-  const secondary = theme.palette.secondary.main;
-  const primarylight = theme.palette.grey[500];
-  const primaryli = theme.palette.grey[200];
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const [labels, setLabels] = useState([]);
+  const [series, setSeries] = useState([]);
 
-  // chart
-  const optionscolumnchart = {
+  useEffect(() => {
+    fetch(`${apiUrl}/api/incidents/`)
+      .then((res) => res.json())
+      .then((data) => {
+        const incidents = data.results ?? data;
+
+        const counter = {};
+        incidents.forEach((incident) => {
+          const type = incident.type || 'Non défini';
+          counter[type] = (counter[type] || 0) + 1;
+        });
+
+        setLabels(Object.keys(counter));
+        setSeries(Object.values(counter));
+      })
+      .catch((err) => console.error('Erreur incidents:', err));
+  }, []);
+
+  const options = {
     chart: {
-      type: 'bar',
-      fontFamily: "'Plus Jakarta Sans', sans-serif;",
-      foreColor: '#adb0bb',
-      toolbar: {
-        show: false,
-      },
-      height: 280,
+      type: 'donut',
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      height: 220,
     },
-    colors: [success, secondary, primary, warning, primarylight, secondary],
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        startingShape: 'flat',
-        endingShape: 'flat',
-        columnWidth: '45%',
-        distributed: true,
+    labels,
+    legend: {
+      position: 'bottom',
+      fontSize: '12px',
+      markers: {
+        width: 8,
+        height: 8,
       },
     },
+    colors: [
+      theme.palette.primary.main,
+      theme.palette.warning.main,
+      theme.palette.error.main,
+      theme.palette.success.main,
+      theme.palette.secondary.main,
+    ],
     dataLabels: {
       enabled: false,
     },
-    legend: {
-      show: false,
+    tooltip: {
+      y: {
+        formatter: (val) => `${val} incident(s)`,
+      },
     },
-    grid: {
-      yaxis: {
-        lines: {
-          show: false,
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '65%',
+          labels: {
+            show: true,
+            name: {
+              fontSize: '12px',
+            },
+            value: {
+              fontSize: '14px',
+              fontWeight: 600,
+            },
+            total: {
+              show: true,
+              label: 'Total',
+              fontSize: '12px',
+              formatter: () => series.reduce((a, b) => a + b, 0),
+            },
+          },
         },
       },
     },
-    xaxis: {
-      categories: [['Apr'], ['May'], ['June'], ['July'], ['Aug'], ['Sept']],
-      axisBorder: {
-        show: false,
-      },
-    },
-    yaxis: {
-      labels: {
-        show: false,
-      },
-    },
-    tooltip: {
-      theme: theme.palette.mode === 'dark' ? 'dark' : 'light',
-    },
   };
-  const seriescolumnchart = [
-    {
-      name: '',
-      data: [20, 15, 30, 25, 10, 15],
-    },
-  ];
 
   return (
     <DashboardWidgetCard
-      title="Incident par mois"
-      subtitle="6 derniers mois"
-      dataLabel1="Total"
-      dataItem1="413"
+      title="Répartition des incidents"
+      subtitle="Par type"
     >
-      <>
-        <Box>
+      <Box display="flex" justifyContent="center">
+        {series.length === 0 ? (
+          <Typography align="center" color="text.secondary">
+            Aucun incident
+          </Typography>
+        ) : (
           <Chart
-            options={optionscolumnchart}
-            series={seriescolumnchart}
-            type="bar"
-            height="380px"
-            width={550}
+            options={options}
+            series={series}
+            type="donut"
+            height={220}
           />
-        </Box>
-      </>
+        )}
+      </Box>
     </DashboardWidgetCard>
   );
 };
 
-export default EmployeeSalary;
+export default IncidentDonutByType;

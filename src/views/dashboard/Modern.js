@@ -1,40 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 
-import TopCards from '../../components/dashboards/modern/TopCards';
-import RevenueUpdates from '../../components/dashboards/modern/RevenueUpdates';
-import YearlyBreakup from '../../components/dashboards/modern/YearlyBreakup';
-import MonthlyEarnings from '../../components/dashboards/modern/MonthlyEarnings';
-import EmployeeSalary from '../../components/dashboards/modern/EmployeeSalary';
-import Customers from '../../components/dashboards/modern/Customers';
-import Projects from '../../components/dashboards/modern/Projects';
-import Social from '../../components/dashboards/modern/Social';
-import SellingProducts from '../../components/dashboards/modern/SellingProducts';
-import WeeklyStats from '../../components/dashboards/modern/WeeklyStats';
-import TopPerformers from '../../components/dashboards/modern/TopPerformers';
+import PageLoader from '../../components/shared/PageLoader';
 
+import TopCards from '../../components/dashboards/modern/TopCards';
+import YearlyBreakup from '../../components/dashboards/modern/YearlyBreakup';
+import EmployeeSalary from '../../components/dashboards/modern/EmployeeSalary';
 
 const Modern = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // ⏳ Simulation du chargement global (API)
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
   return (
     <Box>
       <Grid container spacing={3}>
-        {/* column */}
         <Grid size={12}>
           <TopCards />
         </Grid>
-     
-        
-        {/* column */}
-        <Grid  size={{ xs: 12, lg: 6 }}>
+
+        <Grid size={{ xs: 12, lg: 6 }}>
           <EmployeeSalary />
-        </Grid>   
-         <Grid  size={{ xs: 12, lg: 6 }}>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 6 }}>
           <YearlyBreakup />
-        </Grid>   
+        </Grid>
       </Grid>
-      {/* column */}
-     
     </Box>
   );
 };

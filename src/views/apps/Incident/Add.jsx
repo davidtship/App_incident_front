@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Button, TextField, Grid2 as Grid, Stack, Typography, Tooltip,
   MenuItem, Box, useTheme, Chip, Checkbox, Dialog, DialogTitle,
-  DialogContent, DialogActions
+  DialogContent, DialogActions, Snackbar, Alert, Slide
 } from '@mui/material';
 import { useDropzone } from "react-dropzone";
-import { IconX, IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import Breadcrumb from 'src/layouts/full/shared/breadcrumb/Breadcrumb';
 import BlankCard from 'src/components/shared/BlankCard';
@@ -23,6 +23,8 @@ const BCrumb = [
   { to: '/', title: 'Incidents' },
   { title: 'Ajouter un incident' },
 ];
+
+const TransitionUp = (props) => <Slide {...props} direction="down" />;
 
 const Add = () => {
   const theme = useTheme();
@@ -46,13 +48,16 @@ const Add = () => {
   const [newActionName, setNewActionName] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
   const [narration, setNarration] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+
+  const showSnackbar = (message, severity = 'info') => setSnackbar({ open: true, message, severity });
+  const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
   // --- DROPZONE ---
   const { getRootProps, getInputProps } = useDropzone({
     accept: { 'image/*': [] },
     onDrop: (acceptedFiles) => setMediaFiles(prev => [...prev, ...acceptedFiles])
   });
-
   const removeFile = (file) => setMediaFiles(prev => prev.filter(f => f !== file));
   const files = mediaFiles.map((file, index) => (
     <Box key={index} display="flex" justifyContent="space-between" py={1} mt={2} sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
@@ -61,184 +66,117 @@ const Add = () => {
     </Box>
   ));
 
-  // --- FETCH ÉCOLES ---
-  useEffect(() => {
-    const fetchAllSchools = async () => {
-      try {
-        let allSchools = [];
-        let page = 1;
-        while (true) {
-          const res = await fetch(`${apiUrl}/api/schools/?page=${page}`);
-          const data = await res.json();
-          allSchools = [...allSchools, ...(data.results || data)];
-          if (!data.next) break;
-          page++;
-        }
-        setSchools(allSchools.map(s => ({ label: s.name, value: s.id })));
-      } catch (err) { console.error(err); }
-    };
-    fetchAllSchools();
-  }, []);
+  // --- FETCH DATA ---
+  useEffect(() => { fetchPaginated(`${apiUrl}/api/schools/`, setSchools, (s) => ({ label: s.name, value: s.id })); }, []);
+  useEffect(() => { fetchPaginated(`${apiUrl}/api/incident-categories/`, setCategories, (c) => ({ label: c.name, value: c.id })); }, []);
+  useEffect(() => { fetchPaginated(`${apiUrl}/api/incident-types/`, setIncidentTypes, (t) => t); }, []);
+  useEffect(() => { fetchPaginated(`${apiUrl}/api/actions/`, setActions, (a) => ({ ...a, checked: false })); }, []);
 
-  // --- FETCH CATÉGORIES ---
-  useEffect(() => {
-    const fetchAllCategories = async () => {
-      try {
-        let allCategories = [];
-        let page = 1;
-        while (true) {
-          const res = await fetch(`${apiUrl}/api/incident-categories/?page=${page}`);
-          const data = await res.json();
-          allCategories = [...allCategories, ...(data.results || data)];
-          if (!data.next) break;
-          page++;
-        }
-        setCategories(allCategories.map((cat, idx) => ({ label: cat.name, value: cat.id })));
-      } catch (err) { console.error(err); }
-    };
-    fetchAllCategories();
-  }, []);
-
-  // --- FETCH TYPES D'INCIDENTS ---
-  useEffect(() => {
-    const fetchAllIncidentTypes = async () => {
-      try {
-        let allTypes = [];
-        let page = 1;
-        while (true) {
-          const res = await fetch(`${apiUrl}/api/incident-types/?page=${page}`);
-          const data = await res.json();
-          allTypes = [...allTypes, ...(data.results || data)];
-          if (!data.next) break;
-          page++;
-        }
-        setIncidentTypes(allTypes);
-      } catch (err) { console.error(err); }
-    };
-    fetchAllIncidentTypes();
-  }, []);
-
-  // --- FETCH ACTIONS DE L'API ---
-  useEffect(() => {
-    const fetchActions = async () => {
-      try {
-        let allActions = [];
-        let page = 1;
-        while (true) {
-          const res = await fetch(`${apiUrl}/api/actions/?page=${page}`);
-          const data = await res.json();
-          allActions = [...allActions, ...(data.results || data)];
-          if (!data.next) break;
-          page++;
-        }
-        setActions(allActions.map(a => ({ ...a, checked: false })));
-      } catch (err) { console.error(err); }
-    };
-    fetchActions();
-  }, []);
-
-  const toggleAction = (id) => {
-    setActions(prev => prev.map(a => a.id === id ? { ...a, checked: !a.checked } : a));
+  const fetchPaginated = async (url, setState, mapper) => {
+    try {
+      let allItems = [], page = 1;
+      while (true) {
+        const res = await fetch(`${url}?page=${page}`);
+        const data = await res.json();
+        allItems = [...allItems, ...(data.results || data)];
+        if (!data.next) break;
+        page++;
+      }
+      setState(allItems.map(mapper));
+    } catch (err) { console.error(err); }
   };
 
-  // --- AJOUTER CATÉGORIE ---
+  const toggleAction = (id) => setActions(prev => prev.map(a => a.id === id ? { ...a, checked: !a.checked } : a));
+
+  // --- AJOUT CATÉGORIE ---
   const handleAddCategory = async () => {
-    if (!newCategoryName || !selectedIncidentType) return alert("Veuillez remplir le nom et le type d'incident");
+    if (!newCategoryName || !selectedIncidentType) return showSnackbar("Nom et type d'incident obligatoires", "warning");
     try {
       const res = await fetch(`${apiUrl}/api/incident-categories/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newCategoryName, typeIncident: selectedIncidentType.id })
       });
-      if (!res.ok) throw new Error("Erreur lors de l'ajout");
+      if (!res.ok) throw new Error("Erreur ajout catégorie");
       const cat = await res.json();
       setCategories(prev => [...prev, { label: cat.name, value: cat.id }]);
       setNewCategoryName(''); setSelectedIncidentType(null); setShowAddCategoryForm(false);
-      alert("Catégorie ajoutée avec succès !");
-    } catch (err) { console.error(err); alert("Erreur lors de l'ajout de la catégorie"); }
+      showSnackbar("Catégorie ajoutée !", "success");
+    } catch (err) { console.error(err); showSnackbar("Erreur ajout catégorie", "error"); }
   };
 
-  // --- AJOUTER ACTION ---
+  // --- AJOUT ACTION ---
   const handleAddAction = async () => {
-    if (!newActionName) return alert("Veuillez entrer le nom de l'action");
+    if (!newActionName) return showSnackbar("Nom action obligatoire", "warning");
     try {
       const res = await fetch(`${apiUrl}/api/actions/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newActionName })
       });
-      if (!res.ok) throw new Error("Erreur lors de l'ajout de l'action");
+      if (!res.ok) throw new Error("Erreur ajout action");
       const act = await res.json();
       setActions(prev => [...prev, { ...act, checked: false }]);
       setNewActionName(''); setShowAddActionForm(false);
-      alert("Action ajoutée avec succès !");
-    } catch (err) { console.error(err); alert("Erreur lors de l'ajout de l'action"); }
+      showSnackbar("Action ajoutée !", "success");
+    } catch (err) { console.error(err); showSnackbar("Erreur ajout action", "error"); }
   };
 
   // --- SUBMIT FORMULAIRE ---
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const selectedActions = actions.filter(a => a.checked);
+    // --- VALIDATION ---
+    if (!selectedSchool) return showSnackbar("Sélectionner une école", "warning");
+    if (!form.student.value.trim()) return showSnackbar("Nom élève obligatoire", "warning");
+    if (!birthDate) return showSnackbar("Date naissance obligatoire", "warning");
+    if (!gender) return showSnackbar("Sélection sexe obligatoire", "warning");
+    if (!mediaFiles) return showSnackbar("Les medias sont obligatoires", "warning");
+    if (!form.father.value.trim()) return showSnackbar("Le nom du pere est obligatoire", "warning");
+    if (!form.mother.value.trim()) return showSnackbar("Le nom de la mere est obligatoire", "warning");
+    if (!form.tutor.value.trim()) return showSnackbar("Le nom du tuteur est obligatoire", "warning");
+    if (!narration.replace(/<[^>]+>/g, '')) return showSnackbar("La narration est obligatoire", "warning");
+    if (!form.address.value.trim()) return showSnackbar("Adresse obligatoire", "warning");
+    if (!selectedCategory) return showSnackbar("Sélection catégorie obligatoire", "warning");
+    if (!incidentType) return showSnackbar("Sélection gravité obligatoire", "warning");
+    if (!form.place.value.trim()) return showSnackbar("Lieu incident obligatoire", "warning");
+    if (!incidentDate) return showSnackbar("Date incident obligatoire", "warning");
+    if (!form.tel.value.trim()) return showSnackbar("Téléphone obligatoire", "warning");
+    if (selectedActions.length === 0) return showSnackbar("Sélectionner au moins une action", "warning");
 
-  if (!selectedSchool || !selectedCategory || !gender || !incidentType)
-    return alert("Veuillez remplir tous les champs obligatoires");
+    try {
+      const formData = new FormData();
+      formData.append('school', selectedSchool.value);
+      formData.append('student', form.student.value.trim());
+      formData.append('dob_student', birthDate.format('YYYY-MM-DD'));
+      formData.append('gender', gender);
+      formData.append('add_student', form.address.value.trim());
+      formData.append('father_name', form.father.value.trim());
+      formData.append('mather_name', form.mother.value.trim());
+      formData.append('tutor_name', form.tutor.value.trim());
+      formData.append('tel', form.tel.value.trim());
+      formData.append('cat_incident', selectedCategory.value);
+      formData.append('place', form.place.value.trim());
+      formData.append('type', incidentType);
+      formData.append('date_incident', incidentDate.toISOString());
+      formData.append('narration', narration.replace(/<[^>]+>/g, ''));
+      formData.append('state', "false");
+      selectedActions.forEach(a => formData.append('action_ids', a.id));
+      mediaFiles.forEach(file => formData.append('uploaded_files', file));
 
-  const formData = new FormData();
-  formData.append('school', selectedSchool.value);
-  formData.append('student', e.target.student.value);
-  formData.append('dob_student', birthDate.format('YYYY-MM-DD'));
-  formData.append('gender', gender);
-  formData.append('add_student', e.target.address.value);
-  formData.append('father_name', e.target.father.value);
-  formData.append('mather_name', e.target.mother.value);
-  formData.append('tutor_name', e.target.tutor.value || '');
-  formData.append('tel', e.target.tel.value);
-  formData.append('cat_incident', selectedCategory.value);
-  formData.append('place', e.target.place.value);
-  formData.append('type', incidentType);
-  formData.append('date_incident', incidentDate.toISOString());
-  formData.append('narration', narration.replace(/<[^>]+>/g, ''));
-  formData.append('state', "false");
+      const res = await fetch(`${apiUrl}/api/incidents/`, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error("Erreur création incident");
+      await res.json();
+      showSnackbar("Incident créé !", "success");
 
-  // --- AJOUTER LES ACTIONS --- 
-  const selectedActions = actions.filter(a => a.checked);
-  if (selectedActions.length === 0) return alert("Veuillez sélectionner au moins une action prise");
-  selectedActions.forEach(a => formData.append('action_ids', a.id)); // <-- nom exact du champ serializer
+      // Reset complet
+      form.reset(); setGender('M'); setBirthDate(dayjs()); setIncidentDate(dayjs());
+      setIncidentType(''); setActions(prev => prev.map(a => ({ ...a, checked: false })));
+      setSelectedSchool(null); setSelectedCategory(null); setMediaFiles([]); setNarration('');
 
-  // --- AJOUTER LES FICHIERS ---
-  mediaFiles.forEach(file => formData.append('uploaded_files', file));
-
-  try {
-    const res = await fetch(`${apiUrl}/api/incidents/`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error("Erreur API:", errorData);
-      return alert("Erreur lors de la création de l'incident");
+    } catch (err) {
+      console.error(err); showSnackbar("Erreur création incident", "error");
     }
-
-    await res.json();
-    alert('Incident créé avec succès !');
-
-    // --- RESET FORM ---
-    e.target.reset();
-    setGender('M');
-    setBirthDate(dayjs());
-    setIncidentDate(dayjs());
-    setIncidentType('');
-    setActions(prev => prev.map(a => ({ ...a, checked: false })));
-    setSelectedSchool(null);
-    setSelectedCategory(null);
-    setMediaFiles([]);
-    setNarration('');
-
-  } catch (err) {
-    console.error(err);
-    alert('Erreur lors de la création de l’incident');
-  }
-};
+  };
 
   return (
     <PageContainer title="Ajouter un incident">
@@ -248,7 +186,6 @@ const handleSubmit = async (e) => {
           {/* LEFT */}
           <Grid size={{ lg: 8 }}>
             <Stack spacing={3}>
-              {/* GENERAL */}
               <BlankCard>
                 <Box p={3}>
                   <Typography variant="h5">Informations générales</Typography>
@@ -382,9 +319,9 @@ const handleSubmit = async (e) => {
 
               <BlankCard>
                 <Box p={3}>
-                  <CustomFormLabel>Lieu de l'incident</CustomFormLabel>
+                  <CustomFormLabel>Lieu de l'incident *</CustomFormLabel>
                   <CustomTextField name="place" fullWidth />
-                  <CustomFormLabel mt={3}>Gravité</CustomFormLabel>
+                  <CustomFormLabel mt={3}>Gravité *</CustomFormLabel>
                   <CustomSelect value={incidentType} onChange={e => setIncidentType(e.target.value)} fullWidth>
                     <MenuItem value="Faible">Faible</MenuItem>
                     <MenuItem value="Moyen">Moyen</MenuItem>
@@ -406,6 +343,19 @@ const handleSubmit = async (e) => {
         </Stack>
       </form>
 
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        TransitionComponent={TransitionUp}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       {/* --- POPUP AJOUT CATEGORIE --- */}
       <Dialog open={showAddCategoryForm} onClose={() => setShowAddCategoryForm(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold' }}>Ajouter une catégorie</DialogTitle>
@@ -420,16 +370,14 @@ const handleSubmit = async (e) => {
                 getOptionLabel={opt => opt.name}
                 value={selectedIncidentType}
                 onChange={(e, v) => setSelectedIncidentType(v)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Type d'incident" fullWidth sx={{ mt: 1, fontSize: 16 }} />
-                )}
+                renderInput={(params) => <TextField {...params} label="Type d'incident" fullWidth />}
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" color="error" onClick={() => setShowAddCategoryForm(false)}>Annuler</Button>
-          <Button variant="contained" onClick={handleAddCategory}>Ajouter</Button>
+          <Button onClick={() => setShowAddCategoryForm(false)}>Annuler</Button>
+          <Button onClick={handleAddCategory} variant="contained">Ajouter</Button>
         </DialogActions>
       </Dialog>
 
@@ -437,11 +385,11 @@ const handleSubmit = async (e) => {
       <Dialog open={showAddActionForm} onClose={() => setShowAddActionForm(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold' }}>Ajouter une action</DialogTitle>
         <DialogContent>
-          <TextField label="Nom de l'action" value={newActionName} onChange={e => setNewActionName(e.target.value)} fullWidth sx={{ mt: 1, fontSize: 16 }} />
+          <TextField label="Nom action" value={newActionName} onChange={e => setNewActionName(e.target.value)} fullWidth sx={{ mt: 1, fontSize: 16 }} />
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" color="error" onClick={() => setShowAddActionForm(false)}>Annuler</Button>
-          <Button variant="contained" onClick={handleAddAction}>Ajouter</Button>
+          <Button onClick={() => setShowAddActionForm(false)}>Annuler</Button>
+          <Button onClick={handleAddAction} variant="contained">Ajouter</Button>
         </DialogActions>
       </Dialog>
     </PageContainer>

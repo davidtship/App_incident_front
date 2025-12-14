@@ -17,9 +17,12 @@ const IncidentList = Loadable(lazy(() => import('../views/apps/Incident/List')))
 const EcoleAdd = Loadable(lazy(() => import('../views/apps/Ecoles/Add')));
 const EcoleList = Loadable(lazy(() => import('../views/apps/Ecoles/List')));
 
+const CategorieAdd = Loadable(lazy(() => import('../views/apps/categorie/Add')));
+const CategorieList = Loadable(lazy(() => import('../views/apps/categorie/List')));
 
+const IncidentParDate = Loadable(lazy(() => import('../views/apps/calendar/BigCalendar')));
 
-
+const UserList = Loadable(lazy(() => import('../views/apps/Users/List')));
 const UserProfile = Loadable(lazy(() => import('../views/apps/user-profile/UserProfile')));
 
 const Pricing = Loadable(lazy(() => import('../views/pages/pricing/Pricing')));
@@ -54,13 +57,19 @@ const Router = [
       { path: '/apps/ecommerce/shop', element: <Ecommerce /> },
 
 
+
+      { path: '/apps/Categorie-Ecoles/list', element: <CategorieList /> },
+      { path: '/apps/Categorie-Ecoles/add', element: <CategorieAdd /> },
+
+
       { path: '/apps/Ecoles/list', element: <EcoleList /> },
       { path: '/apps/Ecoles/add', element: <EcoleAdd /> },
 
+      { path: '/apps/Incident/par-date', element: <IncidentParDate /> },
       { path: '/apps/Incident/list', element: <IncidentList /> },
       { path: '/apps/Incident/add', element: <IncidentAdd /> },
 
-
+      { path: '/apps/Users/list', element: <UserList /> },
       { path: '/user-profile', element: <UserProfile /> },
 
       { path: '/pages/pricing', element: <Pricing /> },

@@ -16,7 +16,7 @@ const Error = () => (
         Opps!!!
       </Typography>
       <Typography align="center" variant="h4" mb={4}>
-        La page que vous recherchez est introuvable.
+        
       </Typography>
       <Button
         color="primary"

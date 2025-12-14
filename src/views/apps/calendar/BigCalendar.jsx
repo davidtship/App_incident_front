@@ -1,325 +1,205 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import React from 'react';
-import {
-  CardContent,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  Fab,
-  TextField,
-  Typography,
-} from '@mui/material';
+// CalendarIncidents.jsx
+import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import moment from 'moment';
-import Events from './EventData';
+import 'moment/locale/fr';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import dayjs from 'dayjs';
-import './Calendar.css';
+import { CardContent, Dialog, DialogTitle, DialogContent, Typography, Button, FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { IconCheck } from '@tabler/icons-react';
 import BlankCard from 'src/components/shared/BlankCard';
 import Breadcrumb from 'src/layouts/full/shared/breadcrumb/Breadcrumb';
 
-moment.locale('en-GB');
+moment.locale('fr');
 const localizer = momentLocalizer(moment);
 
-
 const BCrumb = [
-  {
-    to: '/',
-    title: 'Home',
-  },
-  {
-    title: 'Calendar',
-  },
+  { to: '/', title: 'Accueil' },
+  { title: 'Calendrier des incidents' },
 ];
 
+// Couleurs par type d'incident
+const typeColors = {
+  Faible: '#1a97f5',
+  Moyen: '#39b69a',
+  Grave: '#fc4b6c',
+  Critique: '#fdd43f',
+  ParDefaut: '#615dff'
+};
 
-const BigCalendar = ({ isBreadcrumb }) => {
-  const [calevents, setCalEvents] = React.useState(Events);
-  const [open, setOpen] = React.useState(false);
-  const [title, setTitle] = React.useState("");
-  const [slot, setSlot] = React.useState();
-  const [start, setStart] = React.useState(dayjs());
-  const [end, setEnd] = React.useState(dayjs());
-  const [color, setColor] = React.useState("default");
-  const [update, setUpdate] = React.useState();
-  // Example function to set and format the date
+const CalendarIncidents = () => {
+  const [incidents, setIncidents] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [schools, setSchools] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [schoolFilter, setSchoolFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
-  const ColorVariation = [
-    {
-      id: 1,
-      eColor: "#1a97f5",
-      value: "default",
-    },
-    {
-      id: 2,
-      eColor: "#39b69a",
-      value: "green",
-    },
-    {
-      id: 3,
-      eColor: "#fc4b6c",
-      value: "red",
-    },
-    {
-      id: 4,
-      eColor: "#615dff",
-      value: "azure",
-    },
-    {
-      id: 5,
-      eColor: "#fdd43f",
-      value: "warning",
-    },
-  ];
-  const addNewEventAlert = (slotInfo) => {
-    setOpen(true);
-    setSlot(slotInfo);
-    setStart(dayjs(slotInfo.start));
-    setEnd(dayjs(slotInfo.end));
-  };
+  // ---- FETCH INCIDENTS ------------------
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const incidentsRes = await fetch('http://127.0.0.1:8000/api/incidents/');
+        const incidentsData = await incidentsRes.json();
+        setIncidents(incidentsData.results ?? []);
 
+        const schoolsRes = await fetch('http://127.0.0.1:8000/api/schools/');
+        const schoolsData = await schoolsRes.json();
+        setSchools(schoolsData.results ?? []);
 
-  const editEvent = (event) => {
-    const newEditEvent = calevents.find(
-      (elem) => elem.title === event.title
+        const categoriesRes = await fetch('http://127.0.0.1:8000/api/school-categories/');
+        const categoriesData = await categoriesRes.json();
+        setCategories(categoriesData.results ?? []);
+      } catch (error) {
+        console.error('Erreur fetch:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // ---- TRANSFORMATION INCIDENTS EN EVENTS ----
+  useEffect(() => {
+    // Filtrage par école et catégorie
+    const filtered = incidents.filter(
+      (i) =>
+        (schoolFilter ? i.school === parseInt(schoolFilter) : true) &&
+        (categoryFilter ? i.cat_incident === parseInt(categoryFilter) : true)
     );
 
-    setTitle(newEditEvent.title);
-    setColor(newEditEvent.color);
-    setStart(dayjs(newEditEvent.start));
-    setEnd(dayjs(newEditEvent.end));
-    setUpdate(event);
-    setOpen(true);
-  };
-
-  const updateEvent = (e) => {
-    e.preventDefault();
-    setCalEvents(
-      calevents.map((elem) => {
-        if (elem.title === update.title) {
-          return { ...elem, title, start: start?.toISOString(), end: end?.toISOString(), color };
-        }
-        return elem;
-      })
-    );
-    setOpen(false);
-    setTitle("");
-    setStart(dayjs());
-    setEnd(dayjs());
-    setUpdate(null);
-  };
-  const inputChangeHandler = (e) =>
-    setTitle(e.target.value);
-  const selectinputChangeHandler = (id) => setColor(id);
-
-  // When submitting or updating the event
-  const submitHandler = (e) => {
-    e.preventDefault();
-    const newEvents = [...calevents];
-    newEvents.push({
-      title,
-      start: start ? start.toISOString() : "",
-      end: end ? end.toISOString() : "",
-      color,
+    // Regroupement par date
+    const groupedByDate = {};
+    filtered.forEach((incident) => {
+      const date = moment(incident.date_incident).format('YYYY-MM-DD');
+      if (!groupedByDate[date]) groupedByDate[date] = [];
+      groupedByDate[date].push(incident);
     });
-    setCalEvents(newEvents);
-    setOpen(false);
-    setTitle("");
-    setStart(dayjs());
-    setEnd(dayjs());
-  };
 
-  const deleteHandler = (event) => {
-    const updatecalEvents = calevents.filter(
-      (ind) => ind.title !== event.title
-    );
-    setCalEvents(updatecalEvents);
-  };
+    // Création des events pour le calendrier
+    const tempEvents = [];
+    Object.keys(groupedByDate).forEach((date) => {
+      groupedByDate[date].forEach((incident, index) => {
+        tempEvents.push({
+          title: `${incident.student} - ${incident.type}`,
+          start: new Date(incident.date_incident),
+          end: new Date(incident.date_incident),
+          color: typeColors[incident.type] ?? typeColors.ParDefaut,
+          incident,
+          allDay: true
+        });
+      });
+    });
 
-  const handleClose = () => {
-    // eslint-disable-line newline-before-return
-    setOpen(false);
-    setTitle("");
-    setStart(dayjs());
-    setEnd(dayjs());
-    setUpdate(null);
-  };
+    setEvents(tempEvents);
+  }, [incidents, schoolFilter, categoryFilter]);
 
   const eventColors = (event) => {
-    if (event.color) {
-      return { className: `event-${event.color}` };
-    }
-
-    return { className: `event-default` };
+    return {
+      style: {
+        backgroundColor: event.color,
+        color: 'white',
+        borderRadius: '4px',
+        padding: '2px'
+      }
+    };
   };
 
-  const handleStartChange = (newValue) => {
-    if (newValue instanceof Date) {
-      // Convert the native Date object to a dayjs object
-      setStart(dayjs(newValue));
-    } else {
-      setStart(newValue);
-    }
+  const handleSelectEvent = (event) => {
+    setSelectedIncident(event.incident);
+    setOpenDialog(true);
   };
 
-  const handleEndChange = (newValue) => {
-    if (newValue instanceof Date) {
-      // Convert the native Date object to a dayjs object
-      setEnd(dayjs(newValue));
-    } else {
-      setEnd(newValue);
-    }
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedIncident(null);
   };
 
   return (
-    <PageContainer title="Calendar" description="this is Calendar">
-      {isBreadcrumb ? <Breadcrumb title="Calendar" items={BCrumb} /> : null}
+    <PageContainer title="Calendrier des incidents" description="Calendrier des incidents scolaires">
+      <Breadcrumb title="Calendrier" items={BCrumb} />
+
       <BlankCard>
-        {/* ------------------------------------------- */}
-        {/* Calendar */}
-        {/* ------------------------------------------- */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+          {/* Filtre École */}
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel>Filtrer par École</InputLabel>
+            <Select
+              value={schoolFilter}
+              label="Filtrer par École"
+              onChange={(e) => setSchoolFilter(e.target.value)}
+            >
+              <MenuItem value="">Toutes</MenuItem>
+              {schools.map((school) => (
+                <MenuItem key={school.id} value={school.id}>{school.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Filtre Catégorie */}
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel>Filtrer par Catégorie</InputLabel>
+            <Select
+              value={categoryFilter}
+              label="Filtrer par Catégorie"
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <MenuItem value="">Toutes</MenuItem>
+              {categories.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
         <CardContent>
           <Calendar
-            selectable
-            events={calevents}
-            defaultView="month"
-            scrollToTime={new Date(1970, 1, 1, 6)}
-            defaultDate={new Date()}
             localizer={localizer}
-            style={{ height: "calc(100vh - 350px" }}
-            onSelectEvent={(event) => editEvent(event)}
-            onSelectSlot={(slotInfo) => addNewEventAlert(slotInfo)}
-            eventPropGetter={(event) => eventColors(event)}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 'calc(100vh - 250px)' }}
+            onSelectEvent={handleSelectEvent}
+            views={['month', 'week', 'day']}
+            eventPropGetter={eventColors}
           />
         </CardContent>
       </BlankCard>
 
-      {/* ------------------------------------------- */}
-      {/* Add Calendar Event Dialog */}
-      {/* ------------------------------------------- */}
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
-        <form onSubmit={update ? updateEvent : submitHandler}>
-          <DialogContent>
-            {/* ------------------------------------------- */}
-            {/* Add Edit title */}
-            {/* ------------------------------------------- */}
-            <Typography variant="h4" sx={{ mb: 2 }}>
-              {update ? "Update Event" : "Add Event"}
-            </Typography>
-            <Typography mb={3} variant="subtitle2">
-              {!update
-                ? "To add Event kindly fillup the title and choose the event color and press the add button"
-                : "To Edit/Update Event kindly change the title and choose the event color and press the update button"}
-              {slot?.title}
-            </Typography>
-
-            <TextField
-              id="Event Title"
-              placeholder="Enter Event Title"
-              variant="outlined"
-              fullWidth
-              label="Event Title"
-              value={title}
-              sx={{ mb: 3 }}
-              onChange={inputChangeHandler}
-            />
-            {/* ------------------------------------------- */}
-            {/* Selection of Start and end date */}
-            {/* ------------------------------------------- */}
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-
-              <DatePicker
-                value={start}
-                onChange={handleStartChange}
-                slotProps={{
-                  textField: {
-                    label: "Start Date",
-                    fullWidth: true,
-                    sx: { mb: 3 },
-                  },
-                }}
-              />
-
-              <DatePicker
-                value={end}
-                onChange={handleEndChange}
-                slotProps={{
-                  textField: {
-                    label: "End Date",
-                    fullWidth: true,
-                    sx: { mb: 3 },
-                    error: start && end && start > end,
-                    helperText: start && end && start > end ? "End date must be later than start date" : "",
-                  },
-                }}
-              />
-
-            </LocalizationProvider>
-
-            {/* ------------------------------------------- */}
-            {/* Calendar Event Color*/}
-            {/* ------------------------------------------- */}
-            <Typography variant="h6" fontWeight={600} my={2}>
-              Select Event Color
-            </Typography>
-            {/* ------------------------------------------- */}
-            {/* colors for event */}
-            {/* ------------------------------------------- */}
-            {ColorVariation.map((mcolor) => {
-              return (
-                <Fab
-                  color="primary"
-                  style={{ backgroundColor: mcolor.eColor }}
-                  sx={{
-                    marginRight: "3px",
-                    transition: "0.1s ease-in",
-                    scale: mcolor.value === color ? "0.9" : "0.7",
-                  }}
-                  size="small"
-                  key={mcolor.id}
-                  onClick={() => selectinputChangeHandler(mcolor.value)}
-                >
-                  {mcolor.value === color ? <IconCheck width={16} /> : ""}
-                </Fab>
-              );
-            })}
-          </DialogContent>
-          {/* ------------------------------------------- */}
-          {/* Action for dialog */}
-          {/* ------------------------------------------- */}
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={handleClose}>Cancel</Button>
-
-            {update ? (
-              <Button
-                type="submit"
-                color="error"
-                variant="contained"
-                onClick={() => deleteHandler(update)}
-              >
-                Delete
-              </Button>
-            ) : (
-              ""
-            )}
-            <Button type="submit" disabled={!title} variant="contained">
-              {update ? "Update Event" : "Add Event"}
-            </Button>
-          </DialogActions>
-          {/* ------------------------------------------- */}
-          {/* End Calendar */}
-          {/* ------------------------------------------- */}
-        </form>
+      {/* DIALOG DETAILS INCIDENT */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Détails de l'incident</DialogTitle>
+        <DialogContent>
+          {selectedIncident && (
+            <>
+              <Typography><strong>Étudiant :</strong> {selectedIncident.student}</Typography>
+              <Typography><strong>Genre :</strong> {selectedIncident.gender}</Typography>
+              <Typography><strong>Date de naissance :</strong> {selectedIncident.dob_student}</Typography>
+              <Typography><strong>Adresse :</strong> {selectedIncident.add_student}</Typography>
+              <Typography><strong>Père :</strong> {selectedIncident.father_name}</Typography>
+              <Typography><strong>Mère :</strong> {selectedIncident.mather_name}</Typography>
+              <Typography><strong>Tuteur :</strong> {selectedIncident.tutor_name}</Typography>
+              <Typography><strong>Téléphone :</strong> {selectedIncident.tel}</Typography>
+              <Typography><strong>Lieu :</strong> {selectedIncident.place}</Typography>
+              <Typography><strong>Type :</strong> {selectedIncident.type}</Typography>
+              <Typography><strong>Date :</strong> {moment(selectedIncident.date_incident).format('LLL')}</Typography>
+              <Typography><strong>Récit :</strong> {selectedIncident.narration}</Typography>
+              {selectedIncident.actions.length > 0 && (
+                <Typography><strong>Actions :</strong> {selectedIncident.actions.map(a => a.name).join(', ')}</Typography>
+              )}
+              {selectedIncident.picture.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  {selectedIncident.picture.map((pic, i) => (
+                    <img key={i} src={`http://127.0.0.1:8000${pic}`} alt="incident" style={{ width: 100, marginRight: 10 }} />
+                  ))}
+                </Box>
+              )}
+            </>
+          )}
+        </DialogContent>
+        <Button onClick={handleCloseDialog}>Fermer</Button>
       </Dialog>
     </PageContainer>
   );
 };
 
-export default BigCalendar;
+export default CalendarIncidents;
