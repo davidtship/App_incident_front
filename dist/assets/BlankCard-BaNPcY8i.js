@@ -1,1 +1,0 @@
-import{P as s,r as e,C as a,j as i}from"./index-B6sDybhi.js";import{C as n}from"./Card-CbXakIxi.js";const p=({children:r,className:t})=>{const{isCardShadow:o}=e.useContext(a);return i.jsx(n,{sx:{p:0,position:"relative"},className:t,elevation:o?9:0,variant:o?void 0:"outlined",children:r})};p.propTypes={children:s.node};export{p as B};

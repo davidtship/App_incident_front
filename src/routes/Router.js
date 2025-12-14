@@ -17,8 +17,8 @@ const IncidentList = Loadable(lazy(() => import('../views/apps/Incident/List')))
 const EcoleAdd = Loadable(lazy(() => import('../views/apps/Ecoles/Add')));
 const EcoleList = Loadable(lazy(() => import('../views/apps/Ecoles/List')));
 
-const CategorieAdd = Loadable(lazy(() => import('../views/apps/categorie/Add')));
-const CategorieList = Loadable(lazy(() => import('../views/apps/categorie/List')));
+const CategorieAdd = Loadable(lazy(() => import('../views/apps/Categorie/Add')));
+const CategorieList = Loadable(lazy(() => import('../views/apps/Categorie/List')));
 
 const IncidentParDate = Loadable(lazy(() => import('../views/apps/calendar/BigCalendar')));
 

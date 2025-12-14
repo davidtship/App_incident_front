@@ -1,0 +1,1 @@
+import{s,h as t}from"./Box-Ceze8w59.js";import{c as r}from"./createStack-BE4hiCiQ.js";const m=r({createStyledComponent:s("div",{name:"MuiStack",slot:"Root",overridesResolver:(e,o)=>o.root}),useThemeProps:e=>t({props:e,name:"MuiStack"})});export{m as S};
