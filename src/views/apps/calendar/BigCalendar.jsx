@@ -35,20 +35,20 @@ const CalendarIncidents = () => {
   const [categories, setCategories] = useState([]);
   const [schoolFilter, setSchoolFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   // ---- FETCH INCIDENTS ------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const incidentsRes = await fetch('http://127.0.0.1:8000/api/incidents/');
+        const incidentsRes = await fetch(`${apiUrl}/api/incidents/`);
         const incidentsData = await incidentsRes.json();
         setIncidents(incidentsData.results ?? []);
 
-        const schoolsRes = await fetch('http://127.0.0.1:8000/api/schools/');
+        const schoolsRes = await fetch(`${apiUrl}/api/schools/`);
         const schoolsData = await schoolsRes.json();
         setSchools(schoolsData.results ?? []);
 
-        const categoriesRes = await fetch('http://127.0.0.1:8000/api/school-categories/');
+        const categoriesRes = await fetch(`${apiUrl}/api/school-categories/`);
         const categoriesData = await categoriesRes.json();
         setCategories(categoriesData.results ?? []);
       } catch (error) {
