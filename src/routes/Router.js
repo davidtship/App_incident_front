@@ -22,6 +22,7 @@ const CategorieList = Loadable(lazy(() => import('../views/apps/Categorie/List')
 const IncidentParDate = Loadable(lazy(() => import('../views/apps/calendar/BigCalendar')));
 
 const UserList = Loadable(lazy(() => import('../views/apps/Users/List')));
+
 const Pricing = Loadable(lazy(() => import('../views/pages/pricing/Pricing')));
 const AccountSetting = Loadable(lazy(() => import('../views/pages/account-setting/AccountSetting')));
 
@@ -30,6 +31,7 @@ const Login = Loadable(lazy(() => import('../views/authentication/auth1/Login'))
 const Register = Loadable(lazy(() => import('../views/authentication/auth1/Register')));
 const ForgotPassword = Loadable(lazy(() => import('../views/authentication/auth1/ForgotPassword')));
 
+const TwoSteps = Loadable(lazy(() => import('../views/authentication/auth1/TwoSteps')));
 const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 
 /* ------------------- ROUTER ------------------- */
@@ -49,8 +51,7 @@ const routes = [
       { path: '/apps/Incident/list', element: <IncidentList /> },
       { path: '/apps/Incident/add', element: <IncidentAdd /> },
       { path: '/apps/Incident/par-date', element: <IncidentParDate /> },
-      { path: '/apps/ecommerce/shop', element: <Ecommerce /> },
-
+    
       // Écoles
       { path: '/apps/Ecoles/list', element: <EcoleList /> },
       { path: '/apps/Ecoles/add', element: <EcoleAdd /> },
@@ -61,7 +62,6 @@ const routes = [
 
       // Utilisateurs
       { path: '/apps/Users/list', element: <UserList /> },
-
 
       // Pages
       { path: '/pages/pricing', element: <Pricing /> },
