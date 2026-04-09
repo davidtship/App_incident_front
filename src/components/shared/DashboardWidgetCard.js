@@ -22,13 +22,15 @@ const DashboardWidgetCard = ({
 
   return (
     <Card
-      sx={{ padding: 0, border: !isCardShadow ? `1px solid ${borderColor}` : 'none' }}
+      sx={{ 
+        height: '100%',
+        minHeight: 120,padding: 0, border: !isCardShadow ? `1px solid ${borderColor}` : 'none' }}
       elevation={isCardShadow ? 9 : 0}
       variant={!isCardShadow ? 'outlined' : undefined}
     >
       <CardContent sx={{ p: '30px' }}>
         {title ? (
-          <Box>
+          <Box >
             {title ? <Typography variant="h5">{title}</Typography> : ''}
 
             {subtitle ? (

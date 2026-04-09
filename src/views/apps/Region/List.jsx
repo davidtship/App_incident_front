@@ -1,24 +1,24 @@
 import React from 'react';
 import Breadcrumb from 'src/layouts/full/shared/breadcrumb/Breadcrumb';
 import PageContainer from 'src/components/container/PageContainer';
-import EcoleTableList from 'src/components/apps/ecoles/EcolesTableList';
-import { EcoleProvider } from 'src/context/EcoleContext';
+import RegionTableList from 'src/components/apps/ecoles/RegionTableList';
+import { RegionProvider } from 'src/context/RegionContext';
 import BlankCard from 'src/components/shared/BlankCard';
 
 const BCrumb = [
-  { to: '/', title: 'Ecoles' },
-  { title: 'Liste des ecoles' },
+  { to: '/', title: 'Regions' },
+  { title: 'Liste des regions' },
 ];
 
 const IncidentList = () => (
-  <EcoleProvider>
-    <PageContainer title="Liste des ecoles" description="Page des incidents">
-      <Breadcrumb title="Ecoles" items={BCrumb} />
+  <RegionProvider>
+    <PageContainer title="Liste des regions" description="Page des incidents">
+      <Breadcrumb title="Regions" items={BCrumb} />
       <BlankCard>
-        <EcoleTableList />
+        <RegionTableList />
       </BlankCard>
     </PageContainer>
-  </EcoleProvider>
+  </RegionProvider>
 );
 
 export default IncidentList;

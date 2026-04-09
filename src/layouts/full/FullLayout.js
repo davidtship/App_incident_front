@@ -3,14 +3,13 @@ import { CustomizerContext } from 'src/context/CustomizerContext';
 import config from 'src/context/config';
 import { useContext } from 'react';
 import { Outlet } from 'react-router';
-import Header from './vertical/header/Header';
-import HorizontalHeader from '../full/horizontal/header/Header';
+import VerticalHeader from './vertical/header/Header';
+import HorizontalHeader from './horizontal/header/Header';
 import Sidebar from './vertical/sidebar/Sidebar';
 import Customizer from './shared/customizer/Customizer';
 import Navigation from './horizontal/navbar/Navbar';
 import ScrollToTop from '../../components/shared/ScrollToTop';
 import LoadingBar from '../../LoadingBar';
-
 
 const MainWrapper = styled('div')(() => ({
   display: 'flex',
@@ -30,63 +29,35 @@ const PageWrapper = styled('div')(() => ({
 
 const FullLayout = () => {
   const { activeLayout, isLayout, activeMode, isCollapse } = useContext(CustomizerContext);
-
-
   const theme = useTheme();
   const MiniSidebarWidth = config.miniSidebarWidth;
 
   return (
     <>
       <LoadingBar />
-      <MainWrapper
-        className={activeMode === 'dark' ? 'darkbg mainwrapper' : 'mainwrapper'}
-      >
-        {/* ------------------------------------------- */}
-        {/* Sidebar */}
-        {/* ------------------------------------------- */}
+      <MainWrapper className={activeMode === 'dark' ? 'darkbg mainwrapper' : 'mainwrapper'}>
         {activeLayout === 'horizontal' ? '' : <Sidebar />}
-        {/* ------------------------------------------- */}
-        {/* Main Wrapper */}
-        {/* ------------------------------------------- */}
         <PageWrapper
           className="page-wrapper"
           sx={{
-            ...(isCollapse === "mini-sidebar" && {
+            ...(isCollapse === 'mini-sidebar' && {
               [theme.breakpoints.up('lg')]: { ml: `${MiniSidebarWidth}px` },
             }),
           }}
         >
-          {/* ------------------------------------------- */}
-          {/* Header */}
-          {/* ------------------------------------------- */}
-          {activeLayout === 'horizontal' ? <HorizontalHeader /> : <Header />}
-          {/* ------------------------------------------- */}
-          {/* PageContent */}
-          {/* ------------------------------------------- */}
+          {activeLayout === 'horizontal' ? <HorizontalHeader /> : <VerticalHeader />}
           {activeLayout === 'horizontal' ? <Navigation /> : ''}
-          <Container
-            sx={{
-              pt: '30px',
-              maxWidth: isLayout === 'boxed' ? 'lg' : '100%!important',
-            }}
-          >
-            {/* ------------------------------------------- */}
-            {/* Page Route */}
-            {/* ------------------------------------------- */}
+          <Container sx={{ pt: '30px', maxWidth: isLayout === 'boxed' ? 'lg' : '100%!important' }}>
             <Box sx={{ minHeight: 'calc(100vh - 170px)' }}>
               <ScrollToTop>
                 <Outlet />
               </ScrollToTop>
             </Box>
-            {/* ------------------------------------------- */}
-            {/* End Page */}
-            {/* ------------------------------------------- */}
           </Container>
           <Customizer />
         </PageWrapper>
       </MainWrapper>
     </>
-
   );
 };
 

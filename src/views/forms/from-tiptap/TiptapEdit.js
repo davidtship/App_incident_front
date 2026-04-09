@@ -26,7 +26,7 @@ import './Tiptap.css';
 const TiptapEdit = ({ value, onChange }) => {
   const editor = useEditor({
     extensions: [StarterKit],
-    content: value || "<p>Saisissez ici...</p>",
+    content: value || "<p></p>",
     onUpdate({ editor }) {
       // ⚡ Toujours renvoyer le HTML
       onChange(editor.getHTML());
@@ -36,7 +36,7 @@ const TiptapEdit = ({ value, onChange }) => {
   // Si la valeur externe change, mettre à jour l'éditeur
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || "<p>Saisissez ici...</p>");
+      editor.commands.setContent(value || "<p></p>");
     }
   }, [value, editor]);
 

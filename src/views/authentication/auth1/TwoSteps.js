@@ -11,9 +11,9 @@ import AuthTwoSteps from '../authForms/AuthTwoSteps';
 
 const TwoSteps = () => (
   <PageContainer title="Two Steps" description="this is Two Steps page">
-    <Grid container spacing={0} justifyContent="center" sx={{ overflowX: 'hidden' }}>
+    <Grid container spacing={0} sx={{ overflowX: 'hidden' }}>
       <Grid
-        size={{ xs: 12, sm: 12, lg: 8, xl: 9 }}
+        size={{ xs: 12, sm: 12, }}
         sx={{
           position: 'relative',
           '&:before': {
@@ -28,20 +28,15 @@ const TwoSteps = () => (
           },
         }}
       >
+       
         <Box position="relative">
           <Box px={3}>
             <Logo />
           </Box>
           <Box
-            alignItems="center"
-            justifyContent="center"
+         
             height={'calc(100vh - 75px)'}
-            sx={{
-              display: {
-                xs: 'none',
-                lg: 'flex',
-              },
-            }}
+          
           >
             <img
               src={img1}
@@ -51,30 +46,12 @@ const TwoSteps = () => (
                 maxWidth: '500px',
               }}
             />
+             
+
           </Box>
         </Box>
       </Grid>
-      <Grid
-        size={{ xs: 12, sm: 12, lg: 4, xl: 3 }}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Box p={4}>
-          <Typography variant="h4" fontWeight="700">
-            Two Step Verification
-          </Typography>
-
-          <Typography variant="subtitle1" color="textSecondary" mt={2} mb={1}>
-            We sent a verification code to your mobile. Enter the code from the mobile in the field
-            below.
-          </Typography>
-          <Typography variant="subtitle1" fontWeight="700" mb={1}>
-            ******1234
-          </Typography>
-          <AuthTwoSteps />
-        </Box>
-      </Grid>
+     
     </Grid>
   </PageContainer>
 );

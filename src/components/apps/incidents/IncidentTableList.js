@@ -2,14 +2,15 @@ import React, { useContext, useState, useEffect } from 'react';
 import {
   Box, Table, TableBody, TableCell, TableContainer, TableHead,
   TablePagination, TableRow, Toolbar, TextField, InputAdornment,
-  Paper, IconButton, Typography, Button, Avatar, Divider, Slide, Dialog, DialogTitle, DialogContent
+  Paper, Typography, Button, Avatar, Divider, Slide, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
-import { IconSearch, IconDownload, IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import { IconSearch, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import CustomCheckbox from '../../forms/theme-elements/CustomCheckbox';
 import CustomSwitch from '../../forms/theme-elements/CustomSwitch';
 import { IncidentContext } from '../../../context/IncidentContext';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -33,7 +34,6 @@ const IncidentTableList = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
 
-  // Charger toutes les actions depuis l'API
   useEffect(() => {
     const fetchActions = async () => {
       try {
@@ -69,86 +69,82 @@ const IncidentTableList = () => {
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - data.length) : 0;
 
-  // ---------------- PDF ----------------
-  const handleDownloadPDF = async (incident) => {
-    if (!incident) return;
-    const doc = new jsPDF('p', 'pt', 'a4');
-    const pageWidth = doc.internal.pageSize.width;
-    const margin = 40;
-    let y = margin;
+  // ---------------- Excel (tous les incidents) ----------------
+  const handleDownloadExcelAll = () => {
+    const worksheetData = data.map((inc) => ({
+      Élève: inc.student,
+      Genre: inc.gender,
+      "Date de naissance": inc.dob_student,
+      Adresse: inc.add_student,
+      "Nom du père": inc.father_name,
+      "Nom de la mère": inc.mather_name,
+      Tuteur: inc.tutor_name,
+      Téléphone: inc.tel,
+      Lieu: inc.place,
+      Type: inc.type,
+      "Date de l'incident": new Date(inc.date_incident).toLocaleString(),
+      Narration: inc.narration,
+      State: inc.state ? "Traité" : "Non traité",
+      Actions: inc.actions.map(a => a.name).join(", "),
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(worksheetData);
+    XLSX.utils.book_append_sheet(wb, ws, "Incidents");
+    XLSX.writeFile(wb, "incidents.xlsx");
+  };
 
-    doc.setFillColor(25, 118, 210);
-    doc.rect(0, 0, pageWidth, 70, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor('#fff');
-    doc.text('Rapport d’Incident', pageWidth / 2, 45, { align: 'center' });
+  // ---------------- Excel (incident particulier) ----------------
+  const handleDownloadExcelIncident = (incident) => {
+    const worksheetData = [{
+      Élève: incident.student,
+      Genre: incident.gender,
+      "Date de naissance": incident.dob_student,
+      Adresse: incident.add_student,
+      "Nom du père": incident.father_name,
+      "Nom de la mère": incident.mather_name,
+      Tuteur: incident.tutor_name,
+      Téléphone: incident.tel,
+      Lieu: incident.place,
+      Type: incident.type,
+      "Date de l'incident": new Date(incident.date_incident).toLocaleString(),
+      Narration: incident.narration,
+      State: incident.state ? "Traité" : "Non traité",
+      Actions: incident.actions.map(a => a.name).join(", "),
+    }];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(worksheetData);
+    XLSX.utils.book_append_sheet(wb, ws, `Incident_${incident.id}`);
+    XLSX.writeFile(wb, `incident_${incident.id}.xlsx`);
+  };
 
-    y += 90;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor('#1976d2');
-    doc.text('Informations Élève', margin, y);
-    y += 20;
-    doc.setFont('helvetica', 'normal');
-    const infoLines = [
-      `Nom: ${incident.student}`,
-      `Date de naissance: ${incident.dob_student}`,
-      `Téléphone: ${incident.tel}`,
-      `Adresse: ${incident.add_student}`,
-      `Lieu: ${incident.place}`,
-      `Type: ${incident.type}`,
-      `État: ${incident.state ? "Traité" : "Non traité"}`,
-      `Date: ${new Date(incident.date).toLocaleDateString()}`
-    ];
-    infoLines.forEach(line => { doc.text(line, margin, y); y += 18; });
+  // ---------------- Media (ZIP) ----------------
+  const handleDownloadMedia = async (incident) => {
+    if (!incident.picture || incident.picture.length === 0) return;
 
-    y += 10;
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 20;
+    const zip = new JSZip();
+    const folder = zip.folder(`incident_${incident.id}_media`);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor('#388e3c');
-    doc.text('Narration', margin, y);
-    y += 20;
+    await Promise.all(
+      incident.picture.map(async (pic) => {
+        const url = `http://127.0.0.1:8000${pic}`;
+        try {
+          const response = await fetch(url);
+          const blob = await response.blob();
+          folder.file(pic.split("/").pop(), blob);
+        } catch (err) {
+          console.error(`Erreur téléchargement fichier ${pic}:`, err);
+        }
+      })
+    );
 
-    doc.setFont('helvetica', 'normal');
-    const narrationLines = doc.splitTextToSize(incident.narration || 'Aucune', pageWidth - margin * 2);
-    doc.text(narrationLines, margin, y);
-    y += narrationLines.length * 18 + 10;
-
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 20;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor('#d84315');
-    doc.text('Actions prises', margin, y);
-    y += 20;
-
-    const actionsList = Array.isArray(incident.actions) ? incident.actions : [];
-    actionsList.forEach(actionId => {
-      const idNum = typeof actionId === 'string' ? parseInt(actionId, 10) : actionId;
-      const action = allActions.find(a => a.id === idNum);
-      const line = `• ${action ? action.name : `ID inconnu (${actionId})`}`;
-      const textLines = doc.splitTextToSize(line, pageWidth - margin * 2);
-      doc.setTextColor('#000');
-      doc.text(textLines, margin, y);
-      y += textLines.length * 18;
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      saveAs(content, `incident_${incident.id}_media.zip`);
     });
-
-    const dateStr = new Date().toLocaleDateString();
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'italic');
-    doc.text(`Rapport généré le ${dateStr}`, pageWidth / 2, doc.internal.pageSize.height - 20, { align: 'center' });
-
-    doc.save(`incident_${incident.id}.pdf`);
   };
 
   return (
     <Box>
-      <Toolbar>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         <TextField
           placeholder="Rechercher un incident"
           size="small"
@@ -162,6 +158,9 @@ const IncidentTableList = () => {
             ),
           }}
         />
+        <Button variant="contained" color="success" onClick={handleDownloadExcelAll}>
+          Exporter en Excel 
+        </Button>
       </Toolbar>
 
       <Paper>
@@ -232,6 +231,7 @@ const IncidentTableList = () => {
         <CustomSwitch checked={dense} onChange={(e) => setDense(e.target.checked)} />
       </Box>
 
+      {/* DIALOG DETAIL INCIDENT */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
@@ -267,6 +267,9 @@ const IncidentTableList = () => {
                 <Typography><strong>Type:</strong> {selectedIncident.type}</Typography>
                 <Typography><strong>State:</strong> {selectedIncident.state ? "Traité" : "Non traité"}</Typography>
                 <Typography><strong>Date:</strong> {new Date(selectedIncident.date).toLocaleDateString()}</Typography>
+                <Typography><strong>Père:</strong> {selectedIncident.father_name}</Typography>
+                <Typography><strong>Mère:</strong> {selectedIncident.mather_name}</Typography>
+                <Typography><strong>Tuteur:</strong> {selectedIncident.tutor_name}</Typography>
               </Box>
 
               <Box mt={1}>
@@ -278,36 +281,41 @@ const IncidentTableList = () => {
                 <Typography variant="subtitle1" fontWeight={600} mb={1} sx={{ color: '#1976d2' }}>
                   Actions prises :
                 </Typography>
-               {selectedIncident.actions && selectedIncident.actions.length > 0 ? (
-  <ul style={{ marginLeft: '20px', lineHeight: '1.8' }}>
-    {selectedIncident.actions.map((actionId, index) => {
-      // Convertir en nombre pour être sûr
-      const idNum = Number(actionId); 
-      // Chercher dans allActions par id
-      const action = allActions.find(a => Number(a.id) === idNum);
-      return (
-        <li key={index} style={{ fontSize: '16px' }}>
-          {action ? action.name : `${actionId.name}`}
-        </li>
-      );
-    })}
-  </ul>
-) : (
-  <Typography>Aucune action enregistrée.</Typography>
-)}
-
+                {selectedIncident.actions && selectedIncident.actions.length > 0 ? (
+                  <ul style={{ marginLeft: '20px', lineHeight: '1.8' }}>
+                    {selectedIncident.actions.map((action, index) => (
+                      <li key={index} style={{ fontSize: '16px' }}>{action.name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Typography>Aucune action enregistrée.</Typography>
+                )}
               </Box>
 
-              {/* Actions buttons */}
-              <Box display="flex" justifyContent="space-between" mt={3}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  sx={{ textTransform: 'none', fontWeight: 600, boxShadow: 1 }}
-                  onClick={() => handleDownloadPDF(selectedIncident)}
-                >
-                  Télécharger PDF
-                </Button>
+              {/* Media download */}
+              {selectedIncident.picture && selectedIncident.picture.length > 0 && (
+                <Box mt={2}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => handleDownloadMedia(selectedIncident)}
+                    sx={{ textTransform: 'none', fontWeight: 600, mr: 1 }}
+                  >
+                    Télécharger les médias (ZIP)
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    onClick={() => handleDownloadExcelIncident(selectedIncident)}
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Exporter en excel
+                  </Button>
+                </Box>
+              )}
+
+              {/* Close button */}
+              <Box display="flex" justifyContent="flex-end" mt={3}>
                 <Button
                   variant="contained"
                   color="primary"

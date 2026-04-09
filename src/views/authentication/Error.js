@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Button } from '@mui/material';
 import { Link } from 'react-router';
-import ErrorImg from 'src/assets/images/backgrounds/errorimg.svg';
+import ErrorImg from 'src/assets/images/backgrounds/dev.png';
 
 const Error = () => (
   <Box
@@ -13,7 +13,7 @@ const Error = () => (
     <Container maxWidth="md">
       <img src={ErrorImg} alt="404" />
       <Typography align="center" variant="h1" mb={4}>
-        Opps!!!
+        Module en cours de devellopement!!!
       </Typography>
       <Typography align="center" variant="h4" mb={4}>
         

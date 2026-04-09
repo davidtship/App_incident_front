@@ -42,7 +42,10 @@ export const SchoolCategoryProvider = ({ children }) => {
   useEffect(() => {
     fetchCategories();
   }, []);
-
+ // 🔹 Ajouter une catégorie
+  const addCategory = (category) => {
+    setCategories(prev => [...prev, category]);
+  };
   /* ================= SEARCH ================= */
 
   const handleSearch = (text) => {
@@ -62,6 +65,7 @@ export const SchoolCategoryProvider = ({ children }) => {
         totalCount,
         loading,
         search,
+        addCategory,
         handleSearch,
         fetchCategories, // utile après ajout/suppression
       }}

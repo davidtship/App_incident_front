@@ -1,98 +1,57 @@
-import React, { useContext } from 'react';
+import * as React from 'react';
 import { IconButton, Box, AppBar, useMediaQuery, Toolbar, styled, Stack } from '@mui/material';
 import PropTypes from 'prop-types';
-import { CustomizerContext } from 'src/context/CustomizerContext';
-import { ProductProvider } from 'src/context/EcommerceContext/index'
 import { IconMenu2, IconMoon, IconSun } from '@tabler/icons';
-import config from 'src/context/config'
-
-// components
 import Notifications from './Notifications';
 import Profile from './Profile';
-import Cart from './Cart';
-import Search from './Search';
 import Language from './Language';
 import Navigation from './Navigation';
-import MobileRightSidebar from './MobileRightSidebar';
+import Logo from '../../shared/logo/Logo';
+import config from 'src/context/config';
+import { CustomizerContext } from 'src/context/CustomizerContext';
 
-const Header = () => {
-  const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+const VerticalHeader = () => {
   const lgDown = useMediaQuery((theme) => theme.breakpoints.down('lg'));
+  const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
 
+  const { isLayout, setIsMobileSidebar, isMobileSidebar, activeMode, setActiveMode } = React.useContext(CustomizerContext);
   const TopbarHeight = config.topbarHeight;
 
-  // drawer
-  const { activeMode, setActiveMode, setIsCollapse, isCollapse, isMobileSidebar, setIsMobileSidebar } = useContext(CustomizerContext);
-
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
-    boxShadow: 'none',
     background: theme.palette.background.paper,
     justifyContent: 'center',
     backdropFilter: 'blur(4px)',
-    [theme.breakpoints.up('lg')]: {
-      minHeight: TopbarHeight,
-    },
+    [theme.breakpoints.up('lg')]: { minHeight: TopbarHeight },
   }));
+
   const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
+    margin: '0 auto',
     width: '100%',
-    color: theme.palette.text.secondary,
+    color: `${theme.palette.text.secondary} !important`,
   }));
 
   return (
-    <ProductProvider>
-      <AppBarStyled position="sticky" color="default">
-        <ToolbarStyled>
-          {/* ------------------------------------------- */}
-          {/* Toggle Button Sidebar */}
-          {/* ------------------------------------------- */}
-          <IconButton
-            color="inherit"
-            aria-label="menu"
-            onClick={() => {
-              // Toggle sidebar on both mobile and desktop based on screen size
-              if (lgUp) {
-                // For large screens, toggle between full-sidebar and mini-sidebar
-                isCollapse === "full-sidebar" ? setIsCollapse("mini-sidebar") : setIsCollapse("full-sidebar");
-              } else {
-                // For smaller screens, toggle mobile sidebar
-                setIsMobileSidebar(!isMobileSidebar);
-              }
-            }}>
-            <IconMenu2 size="20" />
+
+      <ToolbarStyled sx={{ maxWidth: isLayout === 'boxed' ? 'lg' : '100%!important' }}>
+     
+        <Box flexGrow={1} />
+        <Stack spacing={1} direction="row" alignItems="center">
+    
+
+          <IconButton size="large" color="inherit" onClick={() => setActiveMode(activeMode === 'light' ? 'dark' : 'light')}>
+            {activeMode === 'light' ? <IconMoon size="21" stroke="1.5" /> : <IconSun size="21" stroke="1.5" />}
           </IconButton>
-       
-          {lgUp ? (
-            <>
-              <Navigation />
-                  <Stack spacing={1} direction="row" alignItems="center">
+
         
-
-            {activeMode === 'light' ? (
-              <IconButton size="large" color="inherit" onClick={() => setActiveMode("dark")}>
-                <IconMoon size="21" stroke="1.5" />
-              </IconButton>
-            ) : (
-              <IconButton size="large" color="inherit" onClick={() => setActiveMode("light")}>
-                <IconSun size="21" stroke="1.5" />
-              </IconButton>
-            )}
-{lgDown ? <MobileRightSidebar /> : null}
-            
-          </Stack>
-            </>
-          ) : null}
-
-          <Box flexGrow={1} />
-      <Profile />
-        </ToolbarStyled>
-      </AppBarStyled>
-    </ProductProvider>
+          <Profile />
+        </Stack>
+      </ToolbarStyled>
   );
 };
 
-Header.propTypes = {
+VerticalHeader.propTypes = {
   sx: PropTypes.object,
   toggleSidebar: PropTypes.func,
 };
 
-export default Header;
+export default VerticalHeader;

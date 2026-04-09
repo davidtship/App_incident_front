@@ -5,12 +5,10 @@ import {
   Button,
   Stack,
   Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   IconButton,
   InputAdornment,
+  CircularProgress,
+  Fade,
 } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -20,39 +18,40 @@ import CustomFormLabel from '../../../components/forms/theme-elements/CustomForm
 
 const AuthLogin = ({ title, subtitle, subtext }) => {
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const [alert, setAlert] = useState({ open: false, message: '' });
 
-  const handleClickShowPassword = () => setShowPassword(!showPassword);
-  const handleMouseDownPassword = (event) => event.preventDefault();
+  const handleClickShowPassword = () => setShowPassword((prev) => !prev);
+
+  const showAlert = (message) => {
+    setAlert({ open: true, message });
+    setTimeout(() => setAlert({ open: false, message: '' }), 3000);
+  };
 
   const handleLogin = async () => {
     setLoading(true);
-    setError('');
+
     try {
-      const response = await fetch(
-        `${apiUrl}/auth/jwt/create/`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch(`${apiUrl}/auth/jwt/create/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.detail || 'Erreur de connexion');
-        setOpenDialog(true);
+        showAlert(data.detail || 'Erreur de connexion');
         setLoading(false);
         return;
       }
 
+      // Sauvegarde des tokens
       localStorage.setItem('access', data.access);
       localStorage.setItem('refresh', data.refresh);
       localStorage.setItem(
@@ -65,30 +64,53 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
         })
       );
 
-      setLoading(false);
-      navigate('/dashboards');
+      showAlert('Connexion réussie !');
+
+      setTimeout(() => navigate('/dashboards'), 1500);
     } catch (err) {
-      setError('Erreur serveur. Veuillez réessayer.');
-      setOpenDialog(true);
+      console.error(err);
+      showAlert('Erreur serveur. Veuillez réessayer.');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      {/* TITLE */}
-      <Typography
-        fontWeight="700"
-        variant="h4"
-        textAlign="center"
-        mb={1}
-        sx={{ letterSpacing: '0.5px' }}
-      >
-        {title}
-      </Typography>
+    <Box position="relative">
+      {/* 🔹 ALERTE CENTRÉE */}
+      {alert.open && (
+        <Fade in={alert.open}>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: 'primary.main',
+              color: '#fff',
+              px: 4,
+              py: 2,
+              borderRadius: 2,
+              boxShadow: 3,
+              zIndex: 10000,
+              minWidth: 250,
+              textAlign: 'center',
+              fontWeight: 500,
+            }}
+          >
+            {alert.message}
+          </Box>
+        </Fade>
+      )}
 
-      {/* SUBTEXT */}
-      <Typography textAlign="center">{subtext}</Typography>
+      {/* TITLE */}
+      {title && (
+        <Typography fontWeight="700" variant="h4" textAlign="center" mb={1} sx={{ letterSpacing: '0.5px' }}>
+          {title}
+        </Typography>
+      )}
+
+      {subtext && <Typography textAlign="center">{subtext}</Typography>}
 
       {/* DIVIDER */}
       <Box mt={3} mb={3}>
@@ -103,13 +125,7 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
       <Stack spacing={2}>
         <Box>
           <CustomFormLabel htmlFor="email">Adresse email</CustomFormLabel>
-          <CustomTextField
-            id="email"
-            variant="outlined"
-            fullWidth
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <CustomTextField id="email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
         </Box>
 
         <Box>
@@ -124,11 +140,7 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                  >
+                  <IconButton onClick={handleClickShowPassword} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -162,33 +174,14 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
           fullWidth
           onClick={handleLogin}
           disabled={loading}
-          sx={{
-            py: 1.5,
-            fontWeight: 600,
-            borderRadius: 3,
-            textTransform: 'none',
-          }}
+          sx={{ py: 1.5, fontWeight: 600, borderRadius: 3, textTransform: 'none' }}
         >
-          {loading ? 'Connexion...' : 'Se connecter'}
+          {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Se connecter'}
         </Button>
       </Box>
 
-      {/* SUBTITLE / REGISTER LINK */}
       {subtitle}
-
-      {/* DIALOG ERROR */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Erreur de connexion</DialogTitle>
-        <DialogContent>
-          <Typography>{error}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="primary">
-            Fermer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+    </Box>
   );
 };
 

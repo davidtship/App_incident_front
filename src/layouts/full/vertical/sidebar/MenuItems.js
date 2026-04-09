@@ -14,6 +14,7 @@ import {
   IconCategory,
   IconBrandGoogleMaps,
   IconEdit,
+  IconAdjustmentsCog,
   IconSettings2
 } from '@tabler/icons-react';
 
@@ -22,6 +23,7 @@ const Menuitems = [
     navlabel: true,
     subheader: 'Menu',
   },
+
 
   {
     id: uniqueId(),
@@ -85,7 +87,7 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Region',
         icon: IconBrandGoogleMaps,
-        href: '/apps/ecommerce/edit-product',
+        href: '/apps/Ecoles/region',
       },
     ],
   },
@@ -102,7 +104,26 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Rapports',
     icon: IconChartBar,
-    href: '/apps/tickets',
+    href: '/auth/404',
+  },
+  {
+    id: uniqueId(),
+    title: "Parametres",
+    icon: IconAdjustmentsCog,
+    children: [
+      {
+        id: uniqueId(),
+        title: "Types d'incident",
+        icon: IconList,
+        href: '/apps/Users/list',
+      },
+      {
+        id: uniqueId(),
+        title: "Categories d'incident",
+        icon: IconList,
+        href: '/apps/Users/list',
+      },
+    ],
   },
  {
     id: uniqueId(),
