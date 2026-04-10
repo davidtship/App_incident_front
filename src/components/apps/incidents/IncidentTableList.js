@@ -91,6 +91,7 @@ const getSchoolName = (schoolId) => {
   // ---------------- Excel (tous les incidents) ----------------
   const handleDownloadExcelAll = () => {
     const worksheetData = data.map((inc) => ({
+      Numero_incident: inc.numincid,
       Élève: inc.student,
       Genre: inc.gender,
       "Date de naissance": inc.dob_student,
@@ -115,6 +116,7 @@ const getSchoolName = (schoolId) => {
   // ---------------- Excel (incident particulier) ----------------
   const handleDownloadExcelIncident = (incident) => {
     const worksheetData = [{
+      Numero_incident: incident.numincid,
       Élève: incident.student,
       Genre: incident.gender,
       "Date de naissance": incident.dob_student,
@@ -193,6 +195,7 @@ const getSchoolName = (schoolId) => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
+                <TableCell>Num incident</TableCell>
                 <TableCell>Élève</TableCell>
                 <TableCell>Date de naissance</TableCell>
                 <TableCell>Adresse</TableCell>
@@ -213,6 +216,7 @@ const getSchoolName = (schoolId) => {
                     <TableCell padding="checkbox">
                       <CustomCheckbox checked={isItemSelected} />
                     </TableCell>
+                    <TableCell>{row.numincid}</TableCell>
                     <TableCell>{row.student}</TableCell>
                     <TableCell>{row.dob_student}</TableCell>
                     <TableCell>{row.add_student}</TableCell>
@@ -316,8 +320,10 @@ const getSchoolName = (schoolId) => {
               </Box>
 
               {/* Media download */}
+              <Box mt={2}>
+              
               {selectedIncident.picture && selectedIncident.picture.length > 0 && (
-                <Box mt={2}>
+                <>
                   <Button
                     variant="outlined"
                     color="secondary"
@@ -326,17 +332,20 @@ const getSchoolName = (schoolId) => {
                   >
                     Télécharger les médias (ZIP)
                   </Button>
-                  <Button
+                  
+              
+                
+                    </>
+                )}
+                <Button
                     variant="outlined"
                     color="success"
                     onClick={() => handleDownloadExcelIncident(selectedIncident)}
                     sx={{ textTransform: 'none', fontWeight: 600 }}
                   >
                     Exporter en excel
-                  </Button>
-                </Box>
-              )}
-
+                    </Button>
+  </Box>
               {/* Close button */}
               <Box display="flex" justifyContent="flex-end" mt={3}>
                 <Button
