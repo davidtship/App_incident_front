@@ -13,6 +13,8 @@ import axios from 'axios';
 
 // ---------------- Ajouter Région ----------------
 const AddRegionDialog = ({ open, onClose, onAdded }) => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
   const [name, setName] = useState('');
   const [provinceId, setProvinceId] = useState('');
   const [provincesList, setProvincesList] = useState([]);
@@ -23,7 +25,7 @@ const AddRegionDialog = ({ open, onClose, onAdded }) => {
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const res = await axios.get('https://app-educollect-7113fe5825d7.herokuapp.com/api/provinces/');
+        const res = await axios.get(`${apiUrl}/api/provinces/`);
         setProvincesList(res.data.results || []);
       } catch (err) {
         console.error('Erreur fetch provinces', err);
@@ -42,7 +44,7 @@ const AddRegionDialog = ({ open, onClose, onAdded }) => {
     setLoading(true);
     const code_region = generateCodeRegion();
     try {
-      const res = await axios.post('https://app-educollect-7113fe5825d7.herokuapp.com/api/region/', { name, province: provinceId, code_region });
+      const res = await axios.post(`${apiUrl}/api/region/`, { name, province: provinceId, code_region });
       onAdded(res.data); // ajoute la nouvelle région
       setAlert({ open: true, severity: 'success', message: 'Région ajoutée avec succès !' });
       setName('');
@@ -101,6 +103,7 @@ const AddRegionDialog = ({ open, onClose, onAdded }) => {
 
 // ---------------- Composant principal ----------------
 const EcolesTableList = () => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { regions: initialRegions, search, handleSearch } = useContext(RegionContext);
 
   const [regions, setRegions] = useState([]);
@@ -122,7 +125,7 @@ const EcolesTableList = () => {
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const res = await axios.get('https://app-educollect-7113fe5825d7.herokuapp.com/api/provinces/');
+        const res = await axios.get(`${apiUrl}/api/provinces/`);
         setProvincesList(res.data.results || []);
       } catch (err) {
         console.error('Erreur fetch provinces', err);
@@ -140,7 +143,7 @@ const EcolesTableList = () => {
     if (!window.confirm('Voulez-vous vraiment supprimer cette région ?')) return;
     setLoadingDelete(true);
     try {
-      await axios.delete(`https://app-educollect-7113fe5825d7.herokuapp.com/api/region/${id}/`);
+      await axios.delete(`${apiUrl}/api/region/${id}/`);
       setRegions(regions.filter(r => r.id !== id));
       setAlert({ open: true, severity: 'success', message: 'Région supprimée avec succès !' });
     } catch (err) {

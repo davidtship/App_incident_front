@@ -23,6 +23,7 @@ const typeIconMap = {
 };
 
 const IncidentTableList = () => {
+  const [schools, setSchools] = useState([]);
   const { incidents, search, handleSearch } = useContext(IncidentContext);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const data = incidents ?? [];
@@ -48,6 +49,21 @@ const IncidentTableList = () => {
     };
     fetchActions();
   }, [apiUrl]);
+  useEffect(() => {
+  const fetchSchools = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/schools/`);
+      if (!res.ok) throw new Error("Erreur schools");
+      const data = await res.json();
+      setSchools(Array.isArray(data) ? data : data.results || []);
+    } catch (err) {
+      console.error(err);
+      setSchools([]);
+    }
+  };
+
+  fetchSchools();
+}, [apiUrl]);
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -56,7 +72,10 @@ const IncidentTableList = () => {
     }
     setSelected([]);
   };
-
+const getSchoolName = (schoolId) => {
+  const school = schools.find(s => s.id === schoolId);
+  return school ? school.name : "N/A";
+};
   const handleOpenDialog = (incident) => {
     setSelectedIncident(incident);
     setOpenDialog(true);
@@ -126,7 +145,7 @@ const IncidentTableList = () => {
 
     await Promise.all(
       incident.picture.map(async (pic) => {
-        const url = `http://127.0.0.1:8000${pic}`;
+        const url = `https://app-educollect-7113fe5825d7.herokuapp.com${pic}`;
         try {
           const response = await fetch(url);
           const blob = await response.blob();
@@ -179,6 +198,7 @@ const IncidentTableList = () => {
                 <TableCell>Adresse</TableCell>
                 <TableCell>Téléphone</TableCell>
                 <TableCell>Lieu</TableCell>
+                <TableCell>Ecole</TableCell>
                 <TableCell>Type</TableCell>
                 <TableCell>State</TableCell>
                 <TableCell>Date</TableCell>
@@ -198,6 +218,9 @@ const IncidentTableList = () => {
                     <TableCell>{row.add_student}</TableCell>
                     <TableCell>{row.tel}</TableCell>
                     <TableCell>{row.place}</TableCell>
+                    <TableCell>
+                        {getSchoolName(row.school)}
+                      </TableCell>
                     <TableCell>{row.type}</TableCell>
                     <TableCell>{row.state ? "Traité" : "Non traité"}</TableCell>
                     <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>

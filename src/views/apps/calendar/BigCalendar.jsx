@@ -189,7 +189,7 @@ const CalendarIncidents = () => {
               {selectedIncident.picture.length > 0 && (
                 <Box sx={{ mt: 2 }}>
                   {selectedIncident.picture.map((pic, i) => (
-                    <img key={i} src={`http://127.0.0.1:8000${pic}`} alt="incident" style={{ width: 100, marginRight: 10 }} />
+                    <img key={i} src={`https://app-educollect-7113fe5825d7.herokuapp.com${pic}`} alt="incident" style={{ width: 100, marginRight: 10 }} />
                   ))}
                 </Box>
               )}

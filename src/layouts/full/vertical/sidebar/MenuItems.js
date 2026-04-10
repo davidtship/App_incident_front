@@ -138,7 +138,7 @@ const Menuitems = [
       },
       {
     id: uniqueId(),
-    title: 'Parametres utilisateurs',
+    title: 'Changer le mot de passe ',
     icon: IconSettings2,
     href: '/pages/account-settings',
   },

@@ -13,7 +13,8 @@ const Profile = () => {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser) setUser(storedUser);
-  }, []);
+   
+    }, []);
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -24,6 +25,8 @@ const Profile = () => {
   };
 
   const userName = user.first_name ? `${user.first_name} ${user.last_name}` : 'Utilisateur';
+   
+ 
 
   return (
     <Box>
@@ -62,9 +65,17 @@ const Profile = () => {
                 <Typography variant="subtitle2" color="textPrimary" fontWeight={600}>
                   {userName}
                 </Typography>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Développeur
-                </Typography>
+                {
+                  user.is_superuser ?
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Super utilisateur
+                </Typography> :
+                  <Typography variant="subtitle2" color="textSecondary">
+  {user.is_staff ? "Administrateur" : "Utilisateur"}
+                  </Typography>
+                }
+            
+                
                 <Typography
                   variant="subtitle2"
                   color="textSecondary"

@@ -26,6 +26,7 @@ const BCrumb = [
 
 // --- Dialog pour AJOUT ---
 const AddSchoolCategorieDialog = ({ open, handleClose }) => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addCategory } = useContext(SchoolCategoryContext);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ const AddSchoolCategorieDialog = ({ open, handleClose }) => {
     const newCategory = { name: name.trim() };
 
     try {
-      const res = await fetch('https://app-educollect-7113fe5825d7.herokuapp.com/api/school-categories/', {
+      const res = await fetch(`${apiUrl}/api/school-categories/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategory),
@@ -100,6 +101,7 @@ const AddSchoolCategorieDialog = ({ open, handleClose }) => {
 
 // --- Dialog pour MODIFICATION ---
 const EditSchoolCategorieDialog = ({ open, handleClose, category }) => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { updateCategory } = useContext(SchoolCategoryContext);
   const [name, setName] = useState(category?.name || '');
   const [loading, setLoading] = useState(false);
@@ -113,7 +115,7 @@ const EditSchoolCategorieDialog = ({ open, handleClose, category }) => {
     const updatedCategory = { name: name.trim() };
 
     try {
-      const res = await fetch(`https://app-educollect-7113fe5825d7.herokuapp.com/api/school-categories/${category.id}/`, {
+      const res = await fetch(`${apiUrl}/api/school-categories/${category.id}/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedCategory),

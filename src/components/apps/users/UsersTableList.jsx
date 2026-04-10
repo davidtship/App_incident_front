@@ -1,61 +1,148 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Box, Table, TableBody, TableCell, TableContainer, TableHead,
   TablePagination, TableRow, Toolbar, TextField, InputAdornment,
   Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  Typography, Divider, Slide, Stack, MenuItem, Select, FormControl, InputLabel
+  Typography, Stack, MenuItem, Select, FormControl, InputLabel, Chip
 } from '@mui/material';
 import { IconSearch } from '@tabler/icons-react';
-import CustomCheckbox from '../../forms/theme-elements/CustomCheckbox';
 import { UserContext } from '../../../context/UsersContext';
+
 import EditUserDialog from './EditUserDialog';
 import DeleteUserDialog from './DeleteUserDialog';
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
-
 const UsersTableList = () => {
+
   const { users, search, handleSearch } = useContext(UserContext);
 
-  const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [dense, setDense] = useState(false);
+
+  const [schools, setSchools] = useState([]);
+  const [affectations, setAffectations] = useState([]);
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedSchool, setSelectedSchool] = useState('');
 
   const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const handleOpenEditDialog = (user) => {
+  const apiUrl = "https://app-educollect-7113fe5825d7.herokuapp.com";
+  const token = localStorage.getItem("access");
+
+  // 🔥 LOAD DATA
+  useEffect(() => {
+
+    const fetchData = async () => {
+      const [schoolsRes, affRes] = await Promise.all([
+        fetch(`${apiUrl}/api/schools/`),
+        fetch(`${apiUrl}/api/affectations-users/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+
+      const schoolsData = await schoolsRes.json();
+      const affData = await affRes.json();
+
+      setSchools(schoolsData.results ?? schoolsData);
+      setAffectations(affData.results ?? affData);
+    };
+
+    fetchData();
+
+  }, []);
+
+  // 🔥 AFFECTATION
+  const getAffectation = (userId) => {
+    return affectations.find(a => a.user === userId);
+  };
+
+  const getSchoolName = (schoolId) => {
+    return schools.find(s => s.id === schoolId)?.name;
+  };
+
+  // ✅ ACTIVER / DÉSACTIVER (CORRIGÉ BACKEND CUSTOM ENDPOINT)
+  const toggleActive = async (user) => {
+    try {
+      const res = await fetch(
+        `${apiUrl}/auths/activation/${user.id}/toggle-active/`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
+
+      if (!res.ok) {
+        alert("Erreur activation utilisateur");
+        return;
+      }
+
+      const data = await res.json();
+
+      // update UI sans reload brutal
+      const updated = users.map(u =>
+        u.id === user.id ? { ...u, is_active: data.is_active } : u
+      );
+
+      // option simple : reload (tu peux enlever si store global)
+      window.location.reload();
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🔥 AFFECTATION OPEN
+  const handleOpen = (user) => {
+    const existing = getAffectation(user.id);
+
     setSelectedUser(user);
-    setOpenEditDialog(true);
+    setSelectedSchool(existing ? existing.school : '');
+    setOpenDialog(true);
   };
 
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false);
+  const handleClose = () => {
+    setOpenDialog(false);
     setSelectedUser(null);
+    setSelectedSchool('');
   };
 
-  const handleOpenDeleteDialog = (user) => {
-    setSelectedUser(user);
-    setOpenDeleteDialog(true);
-  };
+  // 🔥 SAVE AFFECTATION
+  const handleSubmit = async () => {
 
-  const handleCloseDeleteDialog = () => {
-    setOpenDeleteDialog(false);
-    setSelectedUser(null);
-  };
+    const existing = getAffectation(selectedUser.id);
 
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      setSelected(users.map((n) => n.id));
+    const res = await fetch(`${apiUrl}/api/affectations-users/`, {
+      method: existing ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(
+        existing
+          ? { id: existing.id, user: selectedUser.id, school: selectedSchool }
+          : { user: selectedUser.id, school: selectedSchool }
+      )
+    });
+
+    if (!res.ok) {
+      alert("Erreur affectation");
       return;
     }
-    setSelected([]);
+
+    handleClose();
+
+    const affRes = await fetch(`${apiUrl}/api/affectations-users/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const affData = await affRes.json();
+    setAffectations(affData.results ?? affData);
   };
 
-  // Filtrage texte
   const filteredData = users.filter((user) =>
     user.username?.toLowerCase().includes(search.toLowerCase()) ||
     user.email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -63,13 +150,11 @@ const UsersTableList = () => {
     user.last_name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredData.length) : 0;
-
   return (
     <Box>
-      {/* ---------------- SEARCH ---------------- */}
-      <Toolbar sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+
+      {/* SEARCH */}
+      <Toolbar sx={{ display: 'flex', gap: 2 }}>
         <TextField
           placeholder="Rechercher un utilisateur"
           size="small"
@@ -80,103 +165,148 @@ const UsersTableList = () => {
               <InputAdornment position="start">
                 <IconSearch />
               </InputAdornment>
-            ),
+            )
           }}
         />
       </Toolbar>
 
-      {/* ---------------- TABLE ---------------- */}
+      {/* TABLE */}
       <Paper>
         <TableContainer>
-          <Table size={dense ? 'small' : 'medium'}>
+          <Table>
+
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
-                  <CustomCheckbox
-                    checked={selected.length === filteredData.length}
-                    onChange={handleSelectAllClick}
-                  />
-                </TableCell>
                 <TableCell>Prénom</TableCell>
                 <TableCell>Nom</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Is Staff</TableCell>
                 <TableCell>Is Active</TableCell>
+                <TableCell>Affectation</TableCell>
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
+
               {filteredData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
-                  <TableRow key={row.id} hover selected={selected.includes(row.id)}>
-                    <TableCell padding="checkbox">
-                      <CustomCheckbox checked={selected.includes(row.id)} />
-                    </TableCell>
-                    <TableCell>{row.first_name}</TableCell>
-                    <TableCell>{row.last_name}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                    <TableCell>{row.is_staff ? 'Oui' : 'Non'}</TableCell>
-                    <TableCell>{row.is_active ? 'Oui' : 'Non'}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => handleOpenEditDialog(row)}
-                        >
-                          Modifier
-                        </Button>
+                .map((user) => {
 
-                        <Button
-                          variant="contained"
-                          size="small"
-                          color="error"
-                          onClick={() => handleOpenDeleteDialog(row)}
-                        >
-                          Supprimer
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                  const aff = getAffectation(user.id);
+                  const schoolName = aff ? getSchoolName(aff.school) : null;
 
-              {emptyRows > 0 && (
-                <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
-                  <TableCell colSpan={8} />
-                </TableRow>
-              )}
+                  return (
+                    <TableRow key={user.id}>
+
+                      <TableCell>{user.first_name}</TableCell>
+                      <TableCell>{user.last_name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+
+                      <TableCell>{user.is_staff ? "Oui" : "Non"}</TableCell>
+                      <TableCell>{user.is_active ? "Oui" : "Non"}</TableCell>
+
+                      {/* AFFECTATION */}
+                      <TableCell>
+                        {aff ? (
+                          <Chip label={schoolName} color="success" />
+                        ) : (
+                          <Chip label="Non affecté" color="warning" />
+                        )}
+                      </TableCell>
+
+                      {/* ACTIONS */}
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setOpenEditDialog(true)}
+                          >
+                            Modifier
+                          </Button>
+
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            onClick={() => setOpenDeleteDialog(true)}
+                          >
+                            Supprimer
+                          </Button>
+
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color={aff ? "warning" : "primary"}
+                            onClick={() => handleOpen(user)}
+                          >
+                            {aff ? "Modifier affectation" : "Affecter"}
+                          </Button>
+
+                          {/* 🔥 ACTIVER / DÉSACTIVER */}
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color={user.is_active ? "error" : "success"}
+                            onClick={() => toggleActive(user)}
+                          >
+                            {user.is_active ? "Désactiver" : "Activer"}
+                          </Button>
+
+                        </Stack>
+                      </TableCell>
+
+                    </TableRow>
+                  );
+                })}
+
             </TableBody>
+
           </Table>
         </TableContainer>
-
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) =>
-            setRowsPerPage(parseInt(e.target.value, 10))
-          }
-        />
       </Paper>
 
-      {/* ---------------- DIALOGS ---------------- */}
-      <EditUserDialog
-        open={openEditDialog}
-        onClose={handleCloseEditDialog}
-        user={selectedUser}
-        onUpdated={() => window.location.reload()}
-      />
-      <DeleteUserDialog
-        open={openDeleteDialog}
-        onClose={handleCloseDeleteDialog}
-        user={selectedUser}
-        onDeleted={() => window.location.reload()}
-      />
+      {/* DIALOG */}
+      <Dialog open={openDialog} onClose={handleClose} fullWidth>
+
+        <DialogTitle>Affectation utilisateur</DialogTitle>
+
+        <DialogContent>
+
+          <Typography mb={2}>
+            {selectedUser?.first_name} {selectedUser?.last_name}
+          </Typography>
+
+          <FormControl fullWidth>
+            <InputLabel>École</InputLabel>
+            <Select
+              value={selectedSchool}
+              onChange={(e) => setSelectedSchool(e.target.value)}
+            >
+              {schools.map((s) => (
+                <MenuItem key={s.id} value={s.id}>
+                  {s.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleClose}>Annuler</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            Sauvegarder
+          </Button>
+        </DialogActions>
+
+      </Dialog>
+
+      <EditUserDialog />
+      <DeleteUserDialog />
+
     </Box>
   );
 };

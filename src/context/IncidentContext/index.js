@@ -12,8 +12,13 @@ export const IncidentProvider = ({ children }) => {
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
+        const token = localStorage.getItem("access");
         const response = await fetch(`
-          ${apiUrl}/api/incidents/`
+          ${apiUrl}/api/incidents/`,{
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+}
         );
         if (!response.ok) throw new Error('Erreur lors du fetch des incidents');
 

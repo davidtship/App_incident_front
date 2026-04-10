@@ -1,6 +1,7 @@
 import React, { lazy } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import RequireAuth from '../components/auth/RequireAuth';
+import RequireSuperUser from '../components/auth/RequireSuperUser';
 import Loadable from '../layouts/full/shared/loadable/Loadable';
 
 /* ***Layouts**** */
@@ -30,8 +31,8 @@ const AccountSetting = Loadable(lazy(() => import('../views/pages/account-settin
 const Login = Loadable(lazy(() => import('../views/authentication/auth1/Login')));
 const Register = Loadable(lazy(() => import('../views/authentication/auth1/Register')));
 const ForgotPassword = Loadable(lazy(() => import('../views/authentication/auth1/ForgotPassword')));
+const Affectations = Loadable(lazy(() => import('../views/user/affectations')));
 
-const TwoSteps = Loadable(lazy(() => import('../views/authentication/auth1/TwoSteps')));
 const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 
 /* ------------------- ROUTER ------------------- */
@@ -51,6 +52,9 @@ const routes = [
       { path: '/apps/Incident/list', element: <IncidentList /> },
       { path: '/apps/Incident/add', element: <IncidentAdd /> },
       { path: '/apps/Incident/par-date', element: <IncidentParDate /> },
+
+      //User
+      { path: '/apps/affectations', element: <Affectations /> },
     
       // Écoles
       { path: '/apps/Ecoles/list', element: <EcoleList /> },
@@ -61,7 +65,7 @@ const routes = [
       { path: '/apps/Categorie-Ecoles/add', element: <CategorieAdd /> },
 
       // Utilisateurs
-      { path: '/apps/Users/list', element: <UserList /> },
+      { path: '/apps/Users/list', element:<RequireSuperUser> <UserList /> </RequireSuperUser>},
 
       // Pages
       { path: '/pages/pricing', element: <Pricing /> },

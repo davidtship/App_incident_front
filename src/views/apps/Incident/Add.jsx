@@ -49,7 +49,7 @@ const Add = () => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [narration, setNarration] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-
+const [affectation, setAffectation] = useState(null);
   const showSnackbar = (message, severity = 'info') => setSnackbar({ open: true, message, severity });
   const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
@@ -67,6 +67,35 @@ const Add = () => {
   ));
 
   // --- FETCH DATA ---
+  useEffect(() => {
+  const fetchAffectation = async () => {
+    try {
+      const token = localStorage.getItem("access");
+
+      const res = await fetch(`${apiUrl}/api/affectations-users/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      const aff = data.results?.[0] || data?.[0];
+
+      if (aff) {
+        setAffectation(aff);
+
+        // 🔥 on remplace automatiquement l'école sélectionnée
+        setSelectedSchool({
+          label: aff.school_name || aff.school?.name,
+          value: aff.school
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchAffectation();
+}, []);
   useEffect(() => { fetchPaginated(`${apiUrl}/api/schools/`, setSchools, (s) => ({ label: s.name, value: s.id })); }, []);
   useEffect(() => { fetchPaginated(`${apiUrl}/api/incident-categories/`, setCategories, (c) => ({ label: c.name, value: c.id })); }, []);
   useEffect(() => { fetchPaginated(`${apiUrl}/api/incident-types/`, setIncidentTypes, (t) => t); }, []);
@@ -162,8 +191,9 @@ const Add = () => {
       formData.append('state', "false");
       selectedActions.forEach(a => formData.append('action_ids', a.id));
       mediaFiles.forEach(file => formData.append('uploaded_files', file));
+      const token = localStorage.getItem("access"); 
 
-      const res = await fetch(`${apiUrl}/api/incidents/`, { method: 'POST', body: formData });
+      const res = await fetch(`${apiUrl}/api/incidents/`, { method: 'POST', headers: { Authorization: `Bearer ${token}`},body: formData});
       if (!res.ok) throw new Error("Erreur création incident");
       await res.json();
       showSnackbar("Incident créé !", "success");
@@ -289,20 +319,6 @@ const Add = () => {
                 </Box>
               </BlankCard>
 
-              {/* ECOLE */}
-              <BlankCard>
-                <Box p={3}>
-                  <Typography variant="h5">École</Typography>
-                  <Autocomplete
-                    options={schools}
-                    getOptionLabel={opt => opt.label}
-                    value={selectedSchool}
-                    disableClearable
-                    onChange={(e, v) => setSelectedSchool(v)}
-                    renderInput={(params) => <TextField {...params} label="Sélectionner une école" fullWidth />}
-                  />
-                </Box>
-              </BlankCard>
             </Stack>
           </Grid>
 

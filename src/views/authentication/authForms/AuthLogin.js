@@ -46,9 +46,17 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        showAlert(data.detail || 'Erreur de connexion');
+        if (data.detail == "No active account found with the given credentials"){
+        showAlert("Votre compte n'est pas activé, veuillez contacter l'administrateur");
         setLoading(false);
         return;
+        }
+        else {
+          showAlert(data.detail || 'Erreur de connexion');
+        setLoading(false);
+        return;
+        }
+        
       }
 
       // Sauvegarde des tokens
@@ -61,6 +69,8 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
           first_name: data.first_name,
           last_name: data.last_name,
           email: data.email,
+          is_staff: data.is_staff,
+          is_superuser:data.is_superuser
         })
       );
 
