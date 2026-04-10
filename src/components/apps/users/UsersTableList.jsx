@@ -28,9 +28,16 @@ const UsersTableList = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const apiUrl = "https://app-educollect-7113fe5825d7.herokuapp.com";
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem("access");
+const handleChangePage = (event, newPage) => {
+  setPage(newPage);
+};
 
+const handleChangeRowsPerPage = (event) => {
+  setRowsPerPage(parseInt(event.target.value, 10));
+  setPage(0);
+};
   // 🔥 LOAD DATA
   useEffect(() => {
 
@@ -266,6 +273,15 @@ const UsersTableList = () => {
 
           </Table>
         </TableContainer>
+        <TablePagination
+  component="div"
+  count={filteredData.length}
+  page={page}
+  onPageChange={handleChangePage}
+  rowsPerPage={rowsPerPage}
+  onRowsPerPageChange={handleChangeRowsPerPage}
+  rowsPerPageOptions={[5, 10, 25, 50]}
+/>
       </Paper>
 
       {/* DIALOG */}

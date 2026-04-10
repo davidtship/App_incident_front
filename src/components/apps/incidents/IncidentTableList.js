@@ -34,7 +34,7 @@ const IncidentTableList = () => {
   const [allActions, setAllActions] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
-
+  
   useEffect(() => {
     const fetchActions = async () => {
       try {
@@ -145,7 +145,7 @@ const getSchoolName = (schoolId) => {
 
     await Promise.all(
       incident.picture.map(async (pic) => {
-        const url = `https://app-educollect-7113fe5825d7.herokuapp.com${pic}`;
+        const url = `${apiUrl}${pic}`;
         try {
           const response = await fetch(url);
           const blob = await response.blob();

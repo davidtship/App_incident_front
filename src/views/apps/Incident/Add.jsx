@@ -49,7 +49,8 @@ const Add = () => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [narration, setNarration] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-const [affectation, setAffectation] = useState(null);
+  const [affectation, setAffectation] = useState(null);
+  const [status, setStatus] = useState(false);
   const showSnackbar = (message, severity = 'info') => setSnackbar({ open: true, message, severity });
   const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
@@ -188,7 +189,7 @@ const [affectation, setAffectation] = useState(null);
       formData.append('type', incidentType);
       formData.append('date_incident', incidentDate.toISOString());
       formData.append('narration', narration.replace(/<[^>]+>/g, ''));
-      formData.append('state', "false");
+      formData.append('state', status);
       selectedActions.forEach(a => formData.append('action_ids', a.id));
       mediaFiles.forEach(file => formData.append('uploaded_files', file));
       const token = localStorage.getItem("access"); 
@@ -262,7 +263,12 @@ const [affectation, setAffectation] = useState(null);
                     <Grid xs={4}><CustomFormLabel>Nom de la mère</CustomFormLabel><CustomTextField name="mother" fullWidth /></Grid>
                     <Grid xs={4}><CustomFormLabel>Nom du tuteur</CustomFormLabel><CustomTextField name="tutor" fullWidth /></Grid>
                   </Grid>
-
+           
+               
+                   <CustomFormLabel>Téléphone *</CustomFormLabel>
+                  <CustomTextField name="tel"  />
+             
+             
                   {/* Narration */}
                   <Grid xs={12} mt={2}><CustomFormLabel>Narration</CustomFormLabel><TiptapEdit value={narration} onChange={setNarration} /></Grid>
                 </Box>
@@ -325,16 +331,12 @@ const [affectation, setAffectation] = useState(null);
           {/* RIGHT */}
           <Grid size={{ lg: 4 }}>
             <Stack spacing={3}>
-              <BlankCard>
-                <Box p={3}>
-                  <Typography variant="h5">Contacts</Typography>
-                  <CustomFormLabel>Téléphone *</CustomFormLabel>
-                  <CustomTextField name="tel" fullWidth />
-                </Box>
-              </BlankCard>
+        
 
               <BlankCard>
+                
                 <Box p={3}>
+                   <Typography variant="h5">Autres informations</Typography>
                   <CustomFormLabel>Lieu de l'incident *</CustomFormLabel>
                   <CustomTextField name="place" fullWidth />
                   <CustomFormLabel mt={3}>Gravité *</CustomFormLabel>
@@ -347,9 +349,23 @@ const [affectation, setAffectation] = useState(null);
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker value={incidentDate} onChange={setIncidentDate} />
                   </LocalizationProvider>
+                  
+                  <CustomFormLabel>Statut </CustomFormLabel>
+                    <CustomSelect
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      fullWidth
+                    >
+                    <MenuItem value={false}>Non traité</MenuItem>
+                    <MenuItem value={true}>Traité</MenuItem>
+                    </CustomSelect>
+             
                 </Box>
+              
+                
               </BlankCard>
             </Stack>
+
           </Grid>
         </Grid>
 
